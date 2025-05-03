@@ -47,22 +47,22 @@ const ClinicComponent = () => {
     fetchClinic();
   }, []);
 
-  // const handleClinicPress = (item: ClinicItem) => {
-  //   console.log("Đã chọn phòng khám:", item.name, "với ID:", item.id);
-  //   router.navigate({
-  //     pathname: "/(routes)/clinic-details",
-  //     params: { 
-  //       id: item.id.toString(),
-  //       name: item.name 
-  //     }
-  //   });
-  // };
+  const handleClinicPress = (item: ClinicItem) => {
+    console.log("Đã chọn phòng khám:", item.name, "với ID:", item.id);
+    router.navigate({
+      pathname: "/(routes)/clinic-details",
+      params: {
+        id: item.id.toString(),
+        name: item.name,
+      },
+    });
+  };
 
   const renderClinicItem = ({ item }: { item: ClinicItem }) => {
     return (
       <TouchableOpacity 
         style={ClinicStyle.clinicItem}
-        // onPress={() => handleClinicPress(item)}
+        onPress={() => handleClinicPress(item)}
       >
         <Image
           source={{ uri: item.image }}
@@ -81,7 +81,6 @@ const ClinicComponent = () => {
       <View style={ClinicStyle.titleWrapper}>
         <Text style={ClinicStyle.title}>Cơ sở y tế nổi bật</Text>
         <TouchableOpacity 
-          // onPress={() => router.navigate({pathname: "/(routes)/all-clinics"})}
         >
           <Text style={ClinicStyle.titleBtn}>Xem thêm</Text>
         </TouchableOpacity>

@@ -14,3 +14,11 @@ export class ClinicModel {
     this.address = address ?? '';
   }
 }
+export class ClinicByIdModel {
+  id?: string;
+
+  constructor(id?: string) {
+    this.id = id ?? '';
+    
+  }
+}

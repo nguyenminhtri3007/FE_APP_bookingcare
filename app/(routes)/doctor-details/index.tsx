@@ -1,8 +1,7 @@
- 
-import TopDoctorComponent from "@/src/screens/home/comp/doctor/doctor.comp";
+import DoctorDetailComponent from "@/src/screens/doctor-details/doctor-details.screen";
 
 const index = () => {
-  return <TopDoctorComponent />
+  return <DoctorDetailComponent />
 }
 
 export default index;

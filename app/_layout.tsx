@@ -87,6 +87,21 @@ function RootLayoutNav() {
               headerShown: false,
             }}
           />
+           <Stack.Screen
+            name="(routes)/clinic-details/index"
+            options={{
+              title: 'Chi tiết cơ sở y tế',
+              headerShown: false,
+            }}
+          />
+
+          <Stack.Screen
+            name="(routes)/doctor-details/index"
+            options={{
+              title: 'Chi tiết cơ sở y tế',
+              headerShown: false,
+            }}
+          />
 
           <Stack.Screen
             name="(tabs)"

@@ -54,21 +54,21 @@ export default function TabLayout() {
           options={{
             title: title,
             tabBarIcon: icon
-              ? ({ color }) => (
-                <View>
-                  <FontAwesome
-                    size={name === "notification/index" ? 22 : 24}
-                    name={icon}
-                    color={color}
-                  />
-                  {name === "notification/index" && notificationCount > 0 && (
-                    <View style={style.notifiWrapper}>
-                      <Text style={style.notifyText}>{notificationCount}</Text>
-                    </View>
-                  )}
-                </View>
-              )
-              : undefined,
+        ? ({ color }) => (
+         <View>
+        <FontAwesome
+          size={name === "notification/index" ? 22 : 24}
+          name={icon}
+          color={color}
+        />
+        {name === "notification/index" && notificationCount > 0 && (
+          <View style={style.notifiWrapper}>
+            <Text style={style.notifyText}>{notificationCount}</Text>
+          </View>
+        )}
+      </View>
+    )
+  : undefined,
           }}
         />
       ))}
