@@ -2,8 +2,8 @@ import { UserModel } from "@/src/data/model/user.model";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class AppConfig {
-    private domain = "http://192.168.19.101:8080/api";
-    private preImage = "http://192.168.19.101:8080/api";
+    private domain = "http://192.168.42.6:8080/api";
+    private preImage = "http://192.168.42.6:8080/api";
 
     constructor() { }
 
@@ -13,6 +13,24 @@ export class AppConfig {
 
     getPreImage() {
         return this.preImage;
+    }
+
+    async setUserId(user_id: number){
+        console.log('AppConfig 19: ', user_id);
+        await AsyncStorage.setItem('user_id', JSON.stringify(user_id));
+    }
+
+    async getUserId(){
+        try {
+            const userInfo = await AsyncStorage.getItem('user_id');
+            if (userInfo) {
+                return JSON.parse(userInfo) as number;
+            }
+
+            return 0;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async getUserInfo() {

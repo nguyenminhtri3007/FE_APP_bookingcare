@@ -6,6 +6,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import SocialSignInButtons from "@/src/components/socialSignInButton/socialSignInButtons.comp";
 
+
+
 type Props = {};
 
 const WelcomeScreen = (props: Props) => {
@@ -13,9 +15,9 @@ const WelcomeScreen = (props: Props) => {
     return (
         <>
             <ImageBackground
-                source={require('@/assets/images/ecommerce-splash.jpg')}
-                style={{ flex: 1 }}
-                resizeMode="cover"
+                source={require('@/assets/images/splash.jpg')}
+              style={{ flex: 1 }}
+                resizeMode="contain"
             >
                 <View style={styles.container}>
                     <LinearGradient
@@ -36,7 +38,7 @@ const WelcomeScreen = (props: Props) => {
                                 </Text>
                                 <Link href={Routes.SIGN_UP} asChild>
                                     <TouchableOpacity>
-                                        <Text style={styles.signInTxtSpan}>Đăng nhập</Text>
+                                        <Text style={styles.signInTxtSpan}>Đăng ký</Text>
                                     </TouchableOpacity>
                                 </Link>
                             </View>

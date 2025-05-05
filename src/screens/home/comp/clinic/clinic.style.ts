@@ -24,7 +24,7 @@ const ClinicStyle = StyleSheet.create({
     color: CommonColors.black,
   },
   clinicItem: {
-    width: 140,
+    width: 160,
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 12,

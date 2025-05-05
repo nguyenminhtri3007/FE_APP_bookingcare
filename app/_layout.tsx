@@ -102,6 +102,22 @@ function RootLayoutNav() {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="(routes)/booking-care/index"
+            options={{
+            title:'đặt lịch khám bệnh',
+            headerShown: false,
+          }}
+          />
+
+           <Stack.Screen
+            name="(routes)/edit-profile/index"
+            options={{
+            title:'cập nhật hồ sơ',
+            headerShown: false,
+          }}
+          />
+
 
           <Stack.Screen
             name="(tabs)"

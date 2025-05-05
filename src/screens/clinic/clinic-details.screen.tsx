@@ -35,29 +35,6 @@ const ClinicDetailsScreen = () => {
     fetchData();
   }, [id]);
 
-//   return (
-//     <ScrollView
-//       style={styles.container}
-//       contentContainerStyle={styles.contentContainer}
-//     >
-//       {loading ? (
-//         <ActivityIndicator size="large" />
-//       ) : (
-//         <Markdown
-//           style={{
-//             body: styles.content,
-//             heading1: styles.heading1,
-//             paragraph: { marginBottom: 8 },
-//             listItem: { marginVertical: 4 },
-//           }}
-//         >
-//           {descriptionMarkdown}
-//         </Markdown>
-//       )}
-//     </ScrollView>
-//   );
-  
-// };
 return (
   <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
     {loading ? (

@@ -6,7 +6,7 @@ const WelcomeStyle = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     background: {
         flex: 1,

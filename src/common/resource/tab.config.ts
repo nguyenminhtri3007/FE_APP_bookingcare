@@ -24,7 +24,7 @@ export class TabConfig {
     }
 
     static screenTabs: TabScreen[] = [
-        { name: 'notification/index', title: 'Thông báo', icon: 'bell' },
+        { name: 'notification/index', title: 'Lịch sử khám bệnh', icon: 'bell' },
         { name: 'setting/index', title: 'Cài đặt', icon: 'user' },
     ]
 };

@@ -8,6 +8,7 @@ const SettingStyle = StyleSheet.create({
     backgroundColor: '#f5f7fb',
     padding: 16,
     alignItems: 'center',
+    marginTop: 40
   },
   title: {
     fontSize: 22,

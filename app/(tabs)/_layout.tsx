@@ -17,7 +17,7 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const tabScreens = TabConfig.screenTabs;
-  const notificationCount = 30;
+
 
   useEffect(() => {
     fetchUserInfo();
@@ -61,11 +61,7 @@ export default function TabLayout() {
           name={icon}
           color={color}
         />
-        {name === "notification/index" && notificationCount > 0 && (
-          <View style={style.notifiWrapper}>
-            <Text style={style.notifyText}>{notificationCount}</Text>
-          </View>
-        )}
+      
       </View>
     )
   : undefined,

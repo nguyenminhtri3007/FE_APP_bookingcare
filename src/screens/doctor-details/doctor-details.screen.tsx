@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { getDetailInforDoctor, getScheduleDoctorByDate, getExtraInforDoctorById } from "@/src/data/service/doctor.service";
 import { DoctorDetailRequestModel, DoctorExtraInforRequestModel, DoctorScheduleRequestModel } from "@/src/data/model/doctor.model";
 import Markdown from "react-native-markdown-display";
 import moment from "moment";
 import "moment/locale/vi";
+
 
 moment.locale("vi");
 
@@ -20,6 +21,7 @@ const DoctorDetailComponent = () => {
   const [selectedDate, setSelectedDate] = useState<string>(moment().startOf("day").valueOf().toString());
   const [extraInfo, setExtraInfo] = useState<any>(null);
   const [showPriceDetail, setShowPriceDetail] = useState<boolean>(false);
+  const router = useRouter();
 
   const upcomingDays = Array.from({ length: 7 }, (_, i) => {
     const date = moment().add(i, "days");
@@ -78,6 +80,49 @@ const DoctorDetailComponent = () => {
     fetchSchedule();
   }, [doctorId, selectedDate]);
 
+  // useEffect(() => {
+  //   const fetchSchedule = async () => {
+  //     if (!doctorId || !selectedDate) return;
+  //     setLoadingSchedule(true);
+  //     try {
+  //       const res = await getScheduleDoctorByDate(new DoctorScheduleRequestModel(doctorId, selectedDate));
+  //       if (res && res.errCode === 0) {
+  //         let data = res.data || [];
+  //         const currentHour = moment().format("HH");
+  
+  //         data = data.filter((item: any) => {
+  //           const itemHour = parseInt(item?.timeTypeData?.value, 10);
+  //           return !isNaN(itemHour) && itemHour > parseInt(currentHour, 10);
+  //         });
+  
+  //         setSchedule(data);
+  //       }
+  //     } catch (error) {
+  //       console.error("Lỗi khi lấy lịch khám:", error);
+  //     } finally {
+  //       setLoadingSchedule(false);
+  //     }
+  //   };
+  //   fetchSchedule();
+  // }, [doctorId, selectedDate]);
+  
+  const handlePressTimeSlot = (item: any) => {
+    console.log(extraInfo);
+    router.navigate({
+      pathname: "/(routes)/booking-care",
+      params: {
+        doctorId: doctorId?.toString(),
+        doctorData: JSON.stringify(item.doctorData),
+        date: selectedDate,
+        timeType: item.timeType,
+        timeTypeData: JSON.stringify(item.timeTypeData),
+        priceTypeData: JSON.stringify(extraInfo.priceTypeData),
+        positionData: JSON.stringify(doctorDetail.positionData),
+        positionId: doctorDetail.positionId
+      },
+    });
+  };
+
   if (!doctorId) {
     return <Text style={styles.loadingText}>Không tìm thấy bác sĩ</Text>;
   }
@@ -123,12 +168,16 @@ const DoctorDetailComponent = () => {
           <Text style={styles.noSchedule}>Bác sĩ không có lịch hẹn trong thời gian này vui lòng chọn thời gian khác</Text>
         ) : (
           <View style={styles.scheduleContainer}>
-            {schedule.map((item, index) => (
-              <View key={index} style={styles.timeSlot}>
-                <Text>{item.timeTypeData?.valueVi || item.timeType}</Text>
-              </View>
-            ))}
-          </View>
+          {schedule.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.timeSlot}
+              onPress={() => handlePressTimeSlot(item)}
+            >
+              <Text>{item.timeTypeData?.valueVi || item.timeType}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         )}
       </View>
       {extraInfo && (
@@ -168,10 +217,10 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#fff",
     marginTop:40,
+    paddingBottom: 60,
   },
   introSection: {
     flexDirection: "row",
-    marginBottom: 16,
   },
   avatar: {
     width: 100,
@@ -195,7 +244,7 @@ const styles = StyleSheet.create({
   loadingText: {
     textAlign: "center",
     marginTop: 32,
-    fontSize: 16,
+    fontSize: 14,
   },
   scheduleSection: {
     marginVertical: 20,
@@ -241,10 +290,8 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   clinicName: {
-    fontWeight: "bold",
   },
   clinicAddress: {
-    fontWeight: "bold",
     marginBottom: 8,
   },
   priceDetailBox: {

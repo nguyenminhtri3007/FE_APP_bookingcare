@@ -1,5 +1,15 @@
 import SettingScreen from "@/src/screens/setting/setting.screen";
+import { Stack } from "expo-router";
 
 export default function index() {
-  return <SettingScreen />
+  return (
+    <>
+      <Stack.Screen 
+        options={{
+          headerShown: false
+        }}
+      />
+      <SettingScreen />
+    </>
+  )
 }
