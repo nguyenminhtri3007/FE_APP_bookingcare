@@ -32,7 +32,6 @@ const ClinicComponent = () => {
         const res = await getClinic(new ClinicModel(ITEM_LIMIT));
         
         if (res && res.errCode === 0) {
-          console.log("Set data clinic vào state:", res.data?.length, "items");
           setDataClinic(res.data || []);
         } else {
           console.error("Lỗi khi lấy dữ liệu phòng khám:", res?.errMessage);
@@ -48,7 +47,6 @@ const ClinicComponent = () => {
   }, []);
 
   const handleClinicPress = (item: ClinicItem) => {
-    console.log("Đã chọn phòng khám:", item.name, "với ID:", item.id);
     router.navigate({
       pathname: "/(routes)/clinic-details",
       params: {

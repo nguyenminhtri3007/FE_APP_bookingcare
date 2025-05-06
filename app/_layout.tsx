@@ -1,3 +1,4 @@
+import { toastConfig } from '@/src/common/config/toastConfig';
 import { Fonts } from '@/src/common/resource/fonts';
 import { ToastProvider } from '@/src/customize/toast.context';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -7,6 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 export {
   ErrorBoundary,
@@ -126,6 +128,7 @@ function RootLayoutNav() {
             }}
           />
         </Stack>
+        <Toast config={toastConfig} />
       </>
     </ToastProvider>
   );

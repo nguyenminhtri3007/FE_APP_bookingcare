@@ -16,6 +16,7 @@ import { AppConfig } from "@/src/common/config/app.config";
 import { UserModel } from "@/src/data/model/user.model";
 import { useState } from "react";
 
+
 const signInform = Yup.object().shape({
     email: Yup.string()
         .email('invalidEmail')
@@ -44,7 +45,7 @@ const SignInScreen = () => {
             // const userInfo = new UserModel().convertObj(response?.info);
             // await new AppConfig().setAccessToken(response.access_token);
             // await new AppConfig().setRefreshToken(response.refresh_token);
-            await new AppConfig().setUserId(response.user.id);
+            await new AppConfig().setUserId(response.user.id);           
             router.dismissAll();
             router.push("/(tabs)");
         } catch (error: any) {

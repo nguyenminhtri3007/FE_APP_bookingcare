@@ -78,7 +78,15 @@ const SettingScreen = () => {
 
    const handleEditProfile = ()=>{
     router.navigate ({
-      pathname:"/(routes)/edit-profile"
+      pathname:"/(routes)/edit-profile",
+      params: {
+        email: profile.email,
+        firstName: profile.name.split(" ").slice(-1).join(" "), 
+        lastName: profile.name.split(" ").slice(0, -1).join(" "), 
+        phone: profile.phone,
+        address: profile.address,
+        gender: profile.gender === "Nam" ? "male" : (profile.gender === "Nữ" ? "female" : "other"),
+      },
     })
    }
 

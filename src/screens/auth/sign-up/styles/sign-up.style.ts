@@ -52,6 +52,26 @@ const SignUpStyle = StyleSheet.create({
         borderTopWidth: 1,
         width: '30%',
         marginBottom: 30
+    },
+    inputField: {
+        marginBottom: 15,
+        alignSelf: 'stretch',
+        backgroundColor: CommonColors.white,
+        borderColor: CommonColors.gray,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        height: 45,
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 12,
+        alignSelf: 'flex-start',
+        marginBottom: 5,
+        marginTop: -2,
+    },
+    errorInput: {
+        borderColor: 'red',
+        borderWidth: 1,
     }
 });
 

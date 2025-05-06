@@ -11,6 +11,7 @@ import {
 import { Picker } from '@react-native-picker/picker';
 import { FilterHistoryModel } from '@/src/data/model/history.model';
 import { getFilteredHistories } from '@/src/data/management/history.management';
+import { AppConfig } from '@/src/common/config/app.config';
 
 interface DoctorData {
   email: string;
@@ -43,14 +44,24 @@ const MedicalHistoryScreen = () => {
   const [data, setData] = useState<HistoryItem[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-
-  const patientId = 114;
+  const [patientId, setPatientId] = useState<number | null>(null);
+  
+  useEffect(() => {
+    const fetchPatientId = async () => {
+      const userId = await new AppConfig().getUserId(); 
+      setPatientId(userId); 
+    };
+    fetchPatientId();
+  }, []);
 
   useEffect(() => {
-    fetchHistory();
-  }, [selectedMonth, selectedYear]);
+    if (patientId) {
+      fetchHistory();
+    }
+  }, [patientId, selectedMonth, selectedYear]);
 
   const fetchHistory = async () => {
+    if (!patientId) return;
     try {
       const fromDate = new Date(selectedYear, selectedMonth - 1, 1);
       const toDate = new Date(selectedYear, selectedMonth, 0);
@@ -62,19 +73,20 @@ const MedicalHistoryScreen = () => {
       );
 
       const res = await getFilteredHistories(filter);
-      if (res.errCode === 0) {
-        const normalized = (res.data || []).map((item: any) => ({
-          ...item,
-          drugs: Array.isArray(item.drugs) ? item.drugs : [],
-        }));
-        setData(normalized);
-      } else {
-        Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Lỗi', 'Không thể kết nối server!');
+    if (res.errCode === 0) {
+      const normalized = (res.data || []).map((item: any) => ({
+        ...item,
+        // Check if drugs is a string, then parse it as JSON, else keep it as is
+        drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
+      }));
+      setData(normalized);
+    } else {
+      Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
     }
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Lỗi', 'Không thể kết nối server!');
+  }
   };
 
   const renderItem = ({ item, index }: { item: HistoryItem; index: number }) => (

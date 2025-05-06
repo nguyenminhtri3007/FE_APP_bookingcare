@@ -4,6 +4,20 @@ import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useRoute } from '@react-navigation/native';
 import * as BookingManagement from "@/src/data/management/booking.management";
+import Toast from 'react-native-toast-message';
+
+const getVietnameseWeekday = (date: Date): string => {
+  const weekdays = [
+    'Chủ nhật', 
+    'Thứ Hai',
+    'Thứ Ba',
+    'Thứ Tư',
+    'Thứ Năm',
+    'Thứ Sáu',
+    'Thứ Bảy'
+  ];
+  return weekdays[date.getDay()];
+};
 
 const BookingForm = () => {
   const route = useRoute();
@@ -15,7 +29,8 @@ const BookingForm = () => {
     timeTypeData,
     priceTypeData,
     positionData,
-    positionId
+    positionId,
+    avatarUri
   } = route.params as {
     doctorId: string,
     doctorData: string,
@@ -24,12 +39,14 @@ const BookingForm = () => {
     timeTypeData: string,
     priceTypeData: string,
     positionData: string,
-    positionId: string
+    positionId: string,
+    avatarUri: string;
   }
+
 
   const [parsedDoctorData, setParsedDoctorData] = useState<{
     firstName: string, 
-    lastName: string
+    lastName: string,
   }>(JSON.parse(doctorData));
   const [parsedTimeTypeData, setParsedTimeTypeData] = useState<{
     value: number
@@ -60,50 +77,74 @@ const BookingForm = () => {
     gender: '',
   });
   const router = useRouter();;
+ 
 
   const handleChange = (key: keyof typeof form, value: string) => {
     setForm({ ...form, [key]: value });
   };
   const handleComfirm = async () =>{
+
+    if (!form.fullName || !form.phone || !form.gender) {
+      Toast.show({
+        type: 'error',
+        text1: 'Thông báo',
+        text2: 'Vui lòng điền đầy đủ thông tin!',
+      });
+      return;
+    }
+    const selectedDate = new Date(+date);
+    const weekday = getVietnameseWeekday(selectedDate);   
     const dataForm = {
       address: form.address,
       birthday: Date.now(),
       date: +date,
       doctorId: +doctorId,
-      doctorName: ``,
+      doctorName: `${parsedDoctorData.lastName} ${parsedDoctorData.firstName}`,
       email: form.email,
       language: "vi",
       patientName: form.fullName,
       phoneNumber: form.phone,
       reason: form.reason,
       selectedGender: form.gender,
-      timeString: `${parsedTimeTypeData.valueVi} - Chủ nhật - ${new Date(+date).toLocaleDateString('vi-VN')}`,
+      timeString: `${parsedTimeTypeData.valueVi} - ${weekday} - ${selectedDate.toLocaleDateString('vi-VN')}`,
       timeType: timeType
     }
-    console.log(dataForm);
     try {
       if(isBooking.current){
         return;
       }
       isBooking.current = true;
       await BookingManagement.booking(dataForm);
-      console.log('Đặt lịch thành công');
       isBooking.current = false;
       bookingSuccess.current = true;
+      Toast.show({
+        type: 'success',
+        text1: 'Đặt lịch thành công. Vui lòng check email để xác nhận !',
+        onHide: () => {
+          router.back();
+        },
+      });
+      
     } catch (error: any) {
-      console.log(error);
+      Toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: error.message || 'Có lỗi xảy ra',
+      });
     }
   }
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Image
-          source={{ uri: 'https://via.placeholder.com/60' }}
+       source={{
+        uri: avatarUri || 'https://via.placeholder.com/60',
+      }}
           style={styles.avatar}
         />
         <View style={styles.headerText}>
           <Text style={styles.title}>{`${parsedPositionData.valueVi}, ${parsedDoctorData.lastName} ${parsedDoctorData.firstName}`}</Text>
-          <Text style={styles.time}>{`${parsedTimeTypeData.valueVi} - Chủ nhật - ${new Date(+date).toLocaleDateString('vi-VN')}`}</Text>
+          <Text style={styles.time}> {`${parsedTimeTypeData.valueVi} - ${getVietnameseWeekday(new Date(+date))} - ${new Date(+date).toLocaleDateString('vi-VN')}`}</Text>
           <Text style={styles.free}>Miễn phí đặt lịch</Text>
         </View>
       </View>

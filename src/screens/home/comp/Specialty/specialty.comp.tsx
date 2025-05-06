@@ -31,7 +31,6 @@ const SpecialtyComponent = () => {
         const res = await getSpecialty(new SpecialtyModel(ITEM_LIMIT));
         
         if (res && res.errCode === 0) {
-          console.log("Set data vào state:", res.data?.length, "items");
           setDataSpecialty(res.data || []);
         } else {
           console.error("Lỗi khi lấy dữ liệu chuyên khoa:", res?.errMessage);
@@ -46,7 +45,6 @@ const SpecialtyComponent = () => {
     fetchSpecialty();
   }, []);
   const handleSpecialtyPress = (item: SpecialtyItem) => {
-    console.log("Đã chọn chuyên khoa:", item.name, "với ID:", item.id);
     router.navigate({
       pathname: "/(routes)/specialty-details",
       params: { 

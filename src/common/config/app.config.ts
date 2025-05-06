@@ -16,7 +16,6 @@ export class AppConfig {
     }
 
     async setUserId(user_id: number){
-        console.log('AppConfig 19: ', user_id);
         await AsyncStorage.setItem('user_id', JSON.stringify(user_id));
     }
 

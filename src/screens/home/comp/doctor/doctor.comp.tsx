@@ -64,7 +64,6 @@ const TopDoctorComponent = () => {
   }, [doctors]);
 
    const handleSpecialtyPress = (item: any) => {
-      console.log("Đã chọn bác sĩ:", item.name, "với ID:", item.id);
       router.navigate({
         pathname: "/(routes)/doctor-details",
         params: { 

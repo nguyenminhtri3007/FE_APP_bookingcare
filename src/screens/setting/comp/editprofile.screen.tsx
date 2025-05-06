@@ -1,19 +1,25 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useRoute } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const EditProfileForm = () => {
+   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const getParamValue = (param: string | string[] | undefined): string => {
+    if (Array.isArray(param)) return param[0] || '';
+    return param || '';
+  };
+  
   const [form, setForm] = useState({
-    email: 'trikma3007@gmail.com',
-    firstName: 'Trí',
-    lastName: 'Nguyễn Minh',
-    phone: '0584151380',
-    address: 'Thái Bình-Hưng Yên',
-    gender: 'male',
+    email: getParamValue(params.email),
+    firstName: getParamValue(params.firstName),
+    lastName: getParamValue(params.lastName),
+    phone: getParamValue(params.phone),
+    address: getParamValue(params.address),
+    gender: getParamValue(params.gender),
   });
-const router = useRouter();
   const handleChange = (key: keyof typeof form, value: string) => {
     setForm({ ...form, [key]: value });
   };

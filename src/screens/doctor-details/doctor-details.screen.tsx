@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Image, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -22,6 +22,18 @@ const DoctorDetailComponent = () => {
   const [extraInfo, setExtraInfo] = useState<any>(null);
   const [showPriceDetail, setShowPriceDetail] = useState<boolean>(false);
   const router = useRouter();
+
+  const selectedDateMoment = moment(Number(selectedDate));
+  const isToday = selectedDateMoment.isSame(moment(), 'day');
+  
+  const filteredSchedule = schedule.filter(item => {
+    if (!isToday) return true;
+  
+    const timeValue = item.timeTypeData?.valueVi || item.timeType; 
+    const startMoment = moment(`${selectedDateMoment.format("YYYY-MM-DD")} ${timeValue}`, "YYYY-MM-DD HH:mm");
+    const endMoment = moment(startMoment).add(1, "hour"); 
+    return moment().isBefore(endMoment); 
+  });
 
   const upcomingDays = Array.from({ length: 7 }, (_, i) => {
     const date = moment().add(i, "days");
@@ -80,34 +92,8 @@ const DoctorDetailComponent = () => {
     fetchSchedule();
   }, [doctorId, selectedDate]);
 
-  // useEffect(() => {
-  //   const fetchSchedule = async () => {
-  //     if (!doctorId || !selectedDate) return;
-  //     setLoadingSchedule(true);
-  //     try {
-  //       const res = await getScheduleDoctorByDate(new DoctorScheduleRequestModel(doctorId, selectedDate));
-  //       if (res && res.errCode === 0) {
-  //         let data = res.data || [];
-  //         const currentHour = moment().format("HH");
   
-  //         data = data.filter((item: any) => {
-  //           const itemHour = parseInt(item?.timeTypeData?.value, 10);
-  //           return !isNaN(itemHour) && itemHour > parseInt(currentHour, 10);
-  //         });
-  
-  //         setSchedule(data);
-  //       }
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy lịch khám:", error);
-  //     } finally {
-  //       setLoadingSchedule(false);
-  //     }
-  //   };
-  //   fetchSchedule();
-  // }, [doctorId, selectedDate]);
-  
-  const handlePressTimeSlot = (item: any) => {
-    console.log(extraInfo);
+  const handlePressTimeSlot = (item: any) => {   
     router.navigate({
       pathname: "/(routes)/booking-care",
       params: {
@@ -118,8 +104,10 @@ const DoctorDetailComponent = () => {
         timeTypeData: JSON.stringify(item.timeTypeData),
         priceTypeData: JSON.stringify(extraInfo.priceTypeData),
         positionData: JSON.stringify(doctorDetail.positionData),
-        positionId: doctorDetail.positionId
+        positionId: doctorDetail.positionId,
+        avatarUri: doctorDetail.image
       },
+      
     });
   };
 
@@ -168,7 +156,7 @@ const DoctorDetailComponent = () => {
           <Text style={styles.noSchedule}>Bác sĩ không có lịch hẹn trong thời gian này vui lòng chọn thời gian khác</Text>
         ) : (
           <View style={styles.scheduleContainer}>
-          {schedule.map((item, index) => (
+          {filteredSchedule.map((item, index) => (
             <TouchableOpacity
               key={index}
               style={styles.timeSlot}
