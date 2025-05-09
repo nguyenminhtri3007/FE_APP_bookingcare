@@ -10,7 +10,6 @@ import { AllCodeRequestModel } from "@/src/data/model/allcode.model";
 import { Picker } from "@react-native-picker/picker";
 import DoctorCardDetail from "./comp/profile-doctor.screen";
 
-
 const SpecialtyDetailsScreen = () => {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
   const [descriptionMarkdown, setDescriptionMarkdown] = useState<string>("");
@@ -18,6 +17,7 @@ const SpecialtyDetailsScreen = () => {
   const [doctorList, setDoctorList] = useState<any[]>([]);
   const [provinces, setProvinces] = useState<any[]>([]);
   const [selectedProvince, setSelectedProvince] = useState<string>("ALL");
+  
 
   const fetchProvinces = async () => {
     try {

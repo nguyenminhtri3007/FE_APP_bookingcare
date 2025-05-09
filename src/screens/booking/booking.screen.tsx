@@ -70,7 +70,7 @@ const BookingForm = () => {
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
-    email: 'trikma3007@gmail.com',
+    email: '',
     address: '',
     reason: '',
     birthDate: '',

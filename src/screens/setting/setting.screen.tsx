@@ -62,7 +62,9 @@ const SettingScreen = () => {
            
       setProfile({
         name: `${user.lastName} ${user.firstName}`,
-        gender: user.gender === 'M' ? 'Nam' : 'Nữ',
+        gender: user.gender === 'M' ? 'Nam' 
+        : (user.gender === 'F' ? 'Nữ' 
+        : (user.gender === 'O' ? 'Khác' : '')) ,
         phone: user.phonenumber,
         address: `${user.address}`,
         email: user.email,
@@ -85,11 +87,17 @@ const SettingScreen = () => {
         lastName: profile.name.split(" ").slice(0, -1).join(" "), 
         phone: profile.phone,
         address: profile.address,
-        gender: profile.gender === "Nam" ? "male" : (profile.gender === "Nữ" ? "female" : "other"),
+        gender: profile.gender ? profile.gender :"",
+        avatar: profile.avatar ? profile.avatar : "",
       },
     })
    }
 
+   const handleLogout = useCallback(() => {
+    console.log("Đăng xuất");
+  }, []);
+
+ 
   const renderAvatar = () => {
     if (profile?.avatar && !imageError) {
       return (
@@ -162,6 +170,11 @@ const SettingScreen = () => {
           <Text>Không thể tải thông tin người dùng</Text>
         </View>
       )}
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}
+                  activeOpacity={0.7} >
+              <Text style={styles.logoutText}>Đăng Xuất</Text>
+            </TouchableOpacity>
     </ScrollView>
   );
 };

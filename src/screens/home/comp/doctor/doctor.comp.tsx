@@ -6,6 +6,7 @@ import DoctorStyle from "./doctor.style";
 import { getTopDoctorList } from "@/src/data/service/doctor.service";
 import { TopDoctorRequestModel } from "@/src/data/model/doctor.model";
 
+
 const TopDoctorComponent = () => {
   const [doctors, setDoctors] = useState<any[]>([]);
   const getImageUrl = (image: any) => {

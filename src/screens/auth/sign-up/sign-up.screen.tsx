@@ -9,6 +9,7 @@ import SocialSignInButtons from "@/src/components/socialSignInButton/socialSignI
 import { SignupModel } from "@/src/data/model/signup.model";
 import * as UserData from "@/src/data/management/signup.management";
 import Toast from "react-native-toast-message";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const SignUpScreen = () => {
     
@@ -123,71 +124,110 @@ const SignUpScreen = () => {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Create an account</Text>
-
-            <InputField
-                style={[
-                    styles.inputField,
-                    errors.email ? styles.errorInput : null
-                ]}
-                placeholder="Enter your email address"
-                value={form.email}
-                onChangeText={value => handleChange("email", value)}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                placeholderTextColor={CommonColors.gray}
-            />
+            <View style={[
+                styles.inputWithIcon,
+                errors.email ? styles.errorInput : null
+            ]}>
+                <MaterialIcons 
+                    name="email" 
+                    size={20} 
+                    style={styles.inputIcon} 
+                    color={CommonColors.gray} 
+                />
+                <InputField
+                    style={styles.inputWithIconField}
+                    placeholder="Enter your email address"
+                    value={form.email}
+                    onChangeText={value => handleChange("email", value)}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    placeholderTextColor={CommonColors.gray}
+                />
+            </View>
             {errors.email ? <Text style={styles.errorText}>{errors.email}</Text> : null}
 
-            <InputField
-                style={[
-                    styles.inputField,
-                    errors.password ? styles.errorInput : null
-                ]}
-                placeholder="Enter your password"
-                value={form.password}
-                onChangeText={value => handleChange("password", value)}
-                secureTextEntry
-                placeholderTextColor={CommonColors.gray}
-            />
+            <View style={[
+                styles.inputWithIcon,
+                errors.password ? styles.errorInput : null
+            ]}>
+                <MaterialIcons 
+                    name="lock-outline" 
+                    size={20} 
+                    style={styles.inputIcon} 
+                    color={CommonColors.gray} 
+                />
+                <InputField
+                    style={styles.inputWithIconField}
+                    placeholder="Enter your password"
+                    value={form.password}
+                    onChangeText={value => handleChange("password", value)}
+                    secureTextEntry
+                    placeholderTextColor={CommonColors.gray}
+                />
+            </View>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
-            <InputField
-                style={[
-                    styles.inputField,
-                    errors.firstName ? styles.errorInput : null
-                ]}
-                placeholder="Enter your first name"
-                value={form.firstName}
-                onChangeText={value => handleChange("firstName", value)}
-                autoCapitalize="words"
-                placeholderTextColor={CommonColors.gray}
-            />
+            <View style={[
+                styles.inputWithIcon,
+                errors.firstName ? styles.errorInput : null
+            ]}>
+                <MaterialIcons 
+                    name="person" 
+                    size={18} 
+                    style={styles.inputIcon} 
+                    color={CommonColors.gray} 
+                />
+                <InputField
+                    style={styles.inputWithIconField}
+                    placeholder="Enter your first name"
+                    value={form.firstName}
+                    onChangeText={value => handleChange("firstName", value)}
+                    autoCapitalize="words"
+                    placeholderTextColor={CommonColors.gray}
+                />
+            </View>
             {errors.firstName ? <Text style={styles.errorText}>{errors.firstName}</Text> : null}
 
-            <InputField
-                style={[
-                    styles.inputField,
-                    errors.lastName ? styles.errorInput : null
-                ]}
-                placeholder="Enter your last name"
-                value={form.lastName}
-                onChangeText={value => handleChange("lastName", value)}
-                autoCapitalize="words"
-                placeholderTextColor={CommonColors.gray}
-            />
+            <View style={[
+                styles.inputWithIcon,
+                errors.lastName ? styles.errorInput : null
+            ]}>
+                <MaterialIcons 
+                    name="person" 
+                    size={18} 
+                    style={styles.inputIcon} 
+                    color={CommonColors.gray} 
+                />
+                <InputField
+                    style={styles.inputWithIconField}
+                    placeholder="Enter your last name"
+                    value={form.lastName}
+                    onChangeText={value => handleChange("lastName", value)}
+                    autoCapitalize="words"
+                    placeholderTextColor={CommonColors.gray}
+                />
+            </View>
             {errors.lastName ? <Text style={styles.errorText}>{errors.lastName}</Text> : null}
 
-            <InputField
-                style={[
-                    styles.inputField,
-                    errors.address ? styles.errorInput : null
-                ]}
-                placeholder="Enter your address"
-                value={form.address}
-                onChangeText={value => handleChange("address", value)}
-                autoCapitalize="sentences"
-                placeholderTextColor={CommonColors.gray}
-            />
+            <View style={[
+                styles.inputWithIcon,
+                errors.address ? styles.errorInput : null
+            ]}>
+                <MaterialIcons 
+                    name="location-on" 
+                    size={20} 
+                    style={styles.inputIcon} 
+                    color={CommonColors.gray} 
+                />
+                <InputField
+                    style={styles.inputWithIconField}
+                    placeholder="Enter your address"
+                    value={form.address}
+                    onChangeText={value => handleChange("address", value)}
+                    autoCapitalize="sentences"
+                    placeholderTextColor={CommonColors.gray}
+                />
+            </View>
             {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
 
             <TouchableOpacity style={styles.btn} onPress={handleSubmit}>

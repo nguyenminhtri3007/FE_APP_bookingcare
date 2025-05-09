@@ -66,6 +66,19 @@ const SettingStyle = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.POPPINS_REGULAR,
   },
+  logoutButton: {
+    marginTop: 70,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#d9534f',
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });
 
 export default SettingStyle;

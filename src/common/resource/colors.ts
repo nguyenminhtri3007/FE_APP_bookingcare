@@ -10,5 +10,7 @@ export const CommonColors = {
     yellow: '#D4AF37',
     green: '#8bc34a',
     red: '#f44336',
-    purple: '#9c27b0'
+    purple: '#9c27b0',
+    success: '#4CAF50',
+    darkText: '#000000',
 }
