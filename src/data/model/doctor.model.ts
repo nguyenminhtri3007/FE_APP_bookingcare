@@ -39,3 +39,38 @@ export class DoctorProfileRequestModel {
     this.doctorId = doctorId;
   }
 }
+
+export class DoctorResponseModel {
+  id!: number;
+  email!: string;
+  firstName!: string;
+  lastName!: string;
+  address?: string;
+  gender?: string;
+  phoneNumber?: string;
+  image?: string;
+  positionId?: string;
+  roleId?: string;
+  status?: string;
+  createdAt?: string;
+
+  genderData?: { valueEn: string; valueVi: string };
+  positionData?: { valueEn: string; valueVi: string };
+  Doctor_Infor?: {
+    specialtyId?: number;
+    provinceId?: string;
+    address?: string;
+    specialtyData?: {
+      id: number;
+      name: string;
+    };
+  };
+
+  constructor(data: Partial<DoctorResponseModel>) {
+    Object.assign(this, data);
+  }
+
+  get fullName(): string {
+    return `${this.firstName} ${this.lastName}`;
+  }
+}

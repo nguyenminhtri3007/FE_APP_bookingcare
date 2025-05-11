@@ -22,3 +22,18 @@ export class ClinicByIdModel {
     
   }
 }
+
+export class ClinicResponseModel {
+  id!: number;
+  name!: string;
+  address!: string;
+  image?: string;
+  descriptionHTML?: string;
+  descriptionMarkdown?: string;
+  createdAt?: string;
+  updatedAt?: string;
+
+  constructor(data: Partial<ClinicResponseModel>) {
+    Object.assign(this, data);
+  }
+}

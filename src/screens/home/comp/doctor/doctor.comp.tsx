@@ -9,34 +9,6 @@ import { TopDoctorRequestModel } from "@/src/data/model/doctor.model";
 
 const TopDoctorComponent = () => {
   const [doctors, setDoctors] = useState<any[]>([]);
-  const getImageUrl = (image: any) => {
-    if (image?.type === "Buffer" && Array.isArray(image.data)) {
-      if (image.data.length > 10000) {
-        try {
-          const chunkSize = 10000; 
-          let binary = '';
-          
-          for (let i = 0; i < image.data.length; i += chunkSize) {
-            const chunk = image.data.slice(i, Math.min(i + chunkSize, image.data.length));
-            binary += String.fromCharCode.apply(null, chunk);
-          }
-          
-          return binary;
-        } catch (error) {
-          console.error("Lỗi xử lý Buffer lớn:", error);
-        }
-      } else {
-        try {
-          const byteString = String.fromCharCode.apply(null, image.data);
-          return byteString;
-        } catch (error) {
-          console.error("Lỗi chuyển đổi Buffer:", error);
-        }
-      }
-    }
-    
-    return "https://via.placeholder.com/100"; 
-  };
 
   const fetchTopDoctors = async () => {
     try {
@@ -52,7 +24,9 @@ const TopDoctorComponent = () => {
   }, []);
 
   const handleSeeMore = () => {
-    console.log("Xem thêm bác sĩ nổi bật");
+    router.navigate({
+      pathname: "/(routes)/all-doctor",  
+    });
   };
 
   const processedDoctors = useMemo(() => {
@@ -60,7 +34,6 @@ const TopDoctorComponent = () => {
       ...doctor,
       fullName: `${doctor?.positionData?.valueVi || ""}, ${doctor?.lastName || ""} ${doctor?.firstName || ""}`,
       specialty: doctor?.Doctor_Infor?.specialtyData?.name || "Chuyên khoa chưa rõ",
-      imageUri: getImageUrl(doctor.image)
     }));
   }, [doctors]);
 
@@ -78,7 +51,7 @@ const TopDoctorComponent = () => {
     return (
       <TouchableOpacity  style={DoctorStyle.card}  onPress={() => handleSpecialtyPress(item)}>
         <Image
-          source={{ uri: item.imageUri }}
+          source={{ uri: item.image }}
           style={DoctorStyle.avatar}
           resizeMode="cover"
         />

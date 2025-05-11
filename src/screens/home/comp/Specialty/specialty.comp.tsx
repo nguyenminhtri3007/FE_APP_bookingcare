@@ -54,6 +54,13 @@ const SpecialtyComponent = () => {
     });
   };
 
+  const handleSeeMore = () => {
+     
+     router.navigate({
+       pathname: "/(routes)/all-specialty",  
+     });
+   };
+
   const renderSpecialtyItem = ({ item }: { item: SpecialtyItem }) => {
     return (
       <TouchableOpacity 
@@ -76,7 +83,7 @@ const SpecialtyComponent = () => {
     <View style={SpecialtyStyle.container}>
       <View style={SpecialtyStyle.titleWrapper}>
         <Text style={SpecialtyStyle.title}>Chuyên khoa phổ biến</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleSeeMore}>
           <Text style={SpecialtyStyle.titleBtn}>Xem thêm</Text>
         </TouchableOpacity>
       </View>

@@ -63,3 +63,13 @@ export const getProfileDoctorById = async (data: DoctorProfileRequestModel) => {
     throw error;
   }
 };
+
+export const getAllDoctors = async () => {
+  try {
+    const domain = new AppConfig().getDomain();
+    const response = await ServiceCore.GET(`${domain}`, `get-all-doctors`);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -56,6 +56,13 @@ const ClinicComponent = () => {
     });
   };
 
+  const handleViewMore = () => {
+    
+    router.navigate({
+      pathname: "/(routes)/all-clinic",  
+    });
+  };
+
   const renderClinicItem = ({ item }: { item: ClinicItem }) => {
     return (
       <TouchableOpacity 
@@ -78,8 +85,7 @@ const ClinicComponent = () => {
     <View style={ClinicStyle.container}>
       <View style={ClinicStyle.titleWrapper}>
         <Text style={ClinicStyle.title}>Cơ sở y tế nổi bật</Text>
-        <TouchableOpacity 
-        >
+       <TouchableOpacity onPress={handleViewMore}>
           <Text style={ClinicStyle.titleBtn}>Xem thêm</Text>
         </TouchableOpacity>
       </View>

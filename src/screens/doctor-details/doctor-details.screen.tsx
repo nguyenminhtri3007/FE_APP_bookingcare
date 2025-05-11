@@ -106,9 +106,10 @@ const DoctorDetailComponent = () => {
         positionData: JSON.stringify(doctorDetail.positionData),
         positionId: doctorDetail.positionId,
         avatarUri: doctorDetail.image
-      },
-      
+      }     
     });
+    console.log('aaaaaaa',doctorDetail.image );
+    
   };
 
   if (!doctorId) {

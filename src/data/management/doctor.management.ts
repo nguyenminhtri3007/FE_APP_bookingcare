@@ -47,3 +47,12 @@ export const getProfileDoctorById = async (data: DoctorProfileRequestModel) => {
     throw error;
   }
 };
+
+export const getAllDoctors = async () => {
+  try {
+    const result = await DoctorService.getAllDoctors();
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};

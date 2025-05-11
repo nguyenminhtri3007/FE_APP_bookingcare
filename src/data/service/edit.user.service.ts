@@ -17,7 +17,9 @@ export const getUserByIdService = async () => {
 export const editUserService = async (data: EditUserRequestModel) => {
   try {
     const domain = new AppConfig().getDomain();
-    const response = await ServiceCore.PUT(`${domain}`, "edit-user", data);
+    const userId = await new AppConfig().getUserId();
+    data.id = `${userId}`;
+    const response = await ServiceCore.PUT(`${domain}`, `edit-user`, data);
     return response;
   } catch (error) {
     throw error;

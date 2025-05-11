@@ -20,3 +20,17 @@ export class SpecialtyByIdModel {
     this.location = location ?? '';
   }
 }
+
+export class SpecialtyResponseModel {
+  id!: number;
+  name!: string;
+  image?: string;
+  descriptionHTML?: string;
+  descriptionMarkdown?: string;
+  createdAt?: string;
+  updatedAt?: string;
+
+  constructor(data: Partial<SpecialtyResponseModel>) {
+    Object.assign(this, data);
+  }
+}

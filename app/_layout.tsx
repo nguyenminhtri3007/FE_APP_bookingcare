@@ -85,7 +85,7 @@ function RootLayoutNav() {
           <Stack.Screen
             name="(routes)/specialty-details/index"
             options={{
-              title: 'Chi tiết bác sĩ',
+              title: 'Chi tiết chuyên khoa',
               headerShown: false,
             }}
           />
@@ -100,7 +100,7 @@ function RootLayoutNav() {
           <Stack.Screen
             name="(routes)/doctor-details/index"
             options={{
-              title: 'Chi tiết cơ sở y tế',
+              title: 'Chi tiết bác sĩ',
               headerShown: false,
             }}
           />
@@ -119,7 +119,30 @@ function RootLayoutNav() {
             headerShown: false,
           }}
           />
+          
+           <Stack.Screen
+            name="(routes)/all-clinic/index"
+            options={{
+            title:'tất cả cơ sở y tế',
+            headerShown: false,
+          }}
+          />
 
+          <Stack.Screen
+            name="(routes)/all-specialty/index"
+            options={{
+            title:'tất cả chuyên khoa',
+            headerShown: false,
+          }}
+          />
+
+          <Stack.Screen
+            name="(routes)/all-doctor/index"
+            options={{
+            title:'tất cả bác sĩ',
+            headerShown: false,
+          }}
+          />
 
           <Stack.Screen
             name="(tabs)"
