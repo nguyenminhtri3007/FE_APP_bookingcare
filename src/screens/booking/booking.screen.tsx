@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { useRoute } from '@react-navigation/native';
 import * as BookingManagement from "@/src/data/management/booking.management";
 import Toast from 'react-native-toast-message';
+import BookingStyle from './booking.style';
 
 const getVietnameseWeekday = (date: Date): string => {
   const weekdays = [
@@ -76,12 +77,31 @@ const BookingForm = () => {
     birthDate: '',
     gender: '',
   });
-  const router = useRouter();;
+  const router = useRouter();
+
+  
+
+  const [emailError, setEmailError] = useState(false);
+  const [phoneError, setPhoneError] = useState(false);
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\d{10}$/;
+
+   const handleChange = (key: keyof typeof form, value: string) => {
+    if (key === 'phone') {
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setForm({ ...form, [key]: numericValue });
+      setPhoneError(!phoneRegex.test(numericValue));
+    } else {
+      setForm({ ...form, [key]: value });
+      if (key === 'email') {
+        setEmailError(!emailRegex.test(value));
+      }
+    }
+  };
  
 
-  const handleChange = (key: keyof typeof form, value: string) => {
-    setForm({ ...form, [key]: value });
-  };
+
   const handleComfirm = async () =>{
 
     if (!form.fullName || !form.phone || !form.gender) {
@@ -89,6 +109,15 @@ const BookingForm = () => {
         type: 'error',
         text1: 'Thông báo',
         text2: 'Vui lòng điền đầy đủ thông tin!',
+      });
+      return;
+    }
+
+    if (emailError || phoneError) {
+      Toast.show({
+        type: 'error',
+        text1: 'Thông báo',
+        text2: 'Vui lòng kiểm tra lại thông tin nhập vào!',
       });
       return;
     }
@@ -109,29 +138,48 @@ const BookingForm = () => {
       timeString: `${parsedTimeTypeData.valueVi} - ${weekday} - ${selectedDate.toLocaleDateString('vi-VN')}`,
       timeType: timeType
     }
-    try {
-      if(isBooking.current){
-        return;
-      }
-      isBooking.current = true;
-      await BookingManagement.booking(dataForm);
-      isBooking.current = false;
-      bookingSuccess.current = true;
-      Toast.show({
-        type: 'success',
-        text1: 'Đặt lịch thành công. Vui lòng check email để xác nhận !',
-        onHide: () => {
-          router.back();
-        },
-      });
-      
-    } catch (error: any) {
-      Toast.show({
-        type: 'error',
-        text1: 'Lỗi',
-        text2: error.message || 'Có lỗi xảy ra',
-      });
-    }
+     try {
+    if (isBooking.current) return;
+    isBooking.current = true;
+
+    const res = await BookingManagement.booking(dataForm);
+    isBooking.current = false;
+
+    if (res?.errCode === 0) {
+  bookingSuccess.current = true;
+  Toast.show({
+    type: 'success',
+    text1: 'Đặt lịch thành công',
+    text2: 'Vui lòng kiểm tra email để xác nhận!',
+    onHide: () => router.back(),
+  });
+} else if (res?.errCode === 3) {
+  Toast.show({
+    type: 'error',
+    text1: 'Thông báo',
+    text2: 'Đã quá số lượng giới hạn đặt lịch, vui lòng chọn khung giờ khác!',
+  });
+} else if (res?.errCode !== undefined) {
+  Toast.show({
+    type: 'error',
+    text1: 'Lỗi',
+    text2: res.errMessage || 'Có lỗi xảy ra!',
+  });
+} else {
+  Toast.show({
+    type: 'error',
+    text1: 'Lỗi',
+    text2: 'Không nhận được phản hồi hợp lệ từ server!',
+  });
+}
+  } catch (error: any) {
+    isBooking.current = false;
+    Toast.show({
+      type: 'error',
+      text1: 'Lỗi',
+      text2: error.message || 'Có lỗi xảy ra!',
+    });
+  }
   }
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -158,20 +206,29 @@ const BookingForm = () => {
         onChangeText={(text) => handleChange('fullName', text)}
       />
 
-      <TextInput
+       <TextInput
         style={styles.input}
         placeholder="Số điện thoại"
         keyboardType="phone-pad"
         value={form.phone}
         onChangeText={(text) => handleChange('phone', text)}
+        maxLength={10}
       />
+      {phoneError && (
+        <Text style={styles.errorText}>Số điện thoại phải gồm 10 chữ số</Text>
+      )}
 
       <TextInput
         style={styles.input}
         placeholder="Địa chỉ email"
         value={form.email}
         onChangeText={(text) => handleChange('email', text)}
+        keyboardType="email-address"
       />
+      {emailError && (
+        <Text style={styles.errorText}>Email không hợp lệ</Text>
+      )}
+
 
       <TextInput
         style={styles.input}
@@ -222,75 +279,6 @@ const BookingForm = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: '#fff',
-    marginTop:40
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-  },
-  headerText: {
-    flex: 1,
-  },
-  title: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  time: {
-    color: '#555',
-  },
-  free: {
-    color: '#28a745',
-    fontSize: 13,
-  },
-  price: {
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    padding: 10,
-    marginBottom: 12,
-  },
-  picker: {
-    height: 50,
-    marginBottom: 16,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  confirmButton: {
-    backgroundColor: '#f0ad4e',
-    padding: 12,
-    borderRadius: 4,
-    flex: 1,
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  cancelButton: {
-    backgroundColor: '#ccc',
-    padding: 12,
-    borderRadius: 4,
-    flex: 1,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-});
+const styles = BookingStyle;
 
 export default BookingForm;

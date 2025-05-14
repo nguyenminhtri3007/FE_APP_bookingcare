@@ -7,6 +7,7 @@ import { DoctorDetailRequestModel, DoctorExtraInforRequestModel, DoctorScheduleR
 import Markdown from "react-native-markdown-display";
 import moment from "moment";
 import "moment/locale/vi";
+import doctorDetailStyle from "./doctor-details.style";
 
 
 moment.locale("vi");
@@ -107,9 +108,7 @@ const DoctorDetailComponent = () => {
         positionId: doctorDetail.positionId,
         avatarUri: doctorDetail.image
       }     
-    });
-    console.log('aaaaaaa',doctorDetail.image );
-    
+    }); 
   };
 
   if (!doctorId) {
@@ -201,102 +200,5 @@ const DoctorDetailComponent = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-    backgroundColor: "#fff",
-    marginTop:40,
-    paddingBottom: 60,
-  },
-  introSection: {
-    flexDirection: "row",
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginRight: 16,
-  },
-  infoText: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  fullName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  description: {
-    fontSize: 14,
-    color: "#666",
-  },
-  loadingText: {
-    textAlign: "center",
-    marginTop: 32,
-    fontSize: 14,
-  },
-  scheduleSection: {
-    marginVertical: 20,
-  },
-  scheduleHeaderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  scheduleTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  picker: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  noSchedule: {
-    fontSize: 14,
-    color: "#888",
-  },
-  scheduleContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 12,
-  },
-  timeSlot: {
-    backgroundColor: "#FFE066",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  detailSection: {
-    marginTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  clinicName: {
-  },
-  clinicAddress: {
-    marginBottom: 8,
-  },
-  priceDetailBox: {
-    backgroundColor: "#f6f8fc",
-    padding: 10,
-    borderRadius: 6,
-  },
-  priceRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
-  },
-  link: {
-    color: "#3498db",
-    marginTop: 4,
-  },
-});
-
+const styles = doctorDetailStyle;
 export default DoctorDetailComponent;

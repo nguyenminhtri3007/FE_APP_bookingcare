@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -6,24 +6,108 @@ import { MaterialIcons } from '@expo/vector-icons';
 import editProfile from './editprofile.style';
 import { EditUserRequestModel } from '@/src/data/model/edit.user.model';
 import { editUserService } from '@/src/data/service/edit.user.service';
+import * as ImagePicker from 'expo-image-picker';
+import { useRoute } from '@react-navigation/native';
+import * as EditManagement from "@/src/data/management/edit.user.management";
+import { bufferToBase64Url } from '@/src/common/utils/file.service';
+import Toast from 'react-native-toast-message';
 
 const EditProfileForm = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const route = useRoute();
+  const [profile, setProfile] = useState<any | undefined>(undefined);
 
-  const getParamValue = (param: string | string[] | undefined): string => {
-    if (Array.isArray(param)) return param[0] || '';
-    return param || '';
+  const {id: userId} = route.params as {
+    id: string
+  }
+
+  useEffect(() => {
+    console.log(userId);
+    fetchUserLogged();
+  }, [])
+
+  const fetchUserLogged = async () => {
+      
+      try {
+        const response = await EditManagement.getUserByIdService();
+        
+        if (!response || !response.users) {
+          return;
+        }  
+        const user = response.users;
+        let avatarUrl = null;
+        
+        if (typeof user.image === 'string') {
+          avatarUrl = user.image;
+        } else if (user.image && typeof user.image === 'object') {
+          if (user.image.type === 'Buffer' && Array.isArray(user.image.data)) {
+            avatarUrl = bufferToBase64Url(user.image);
+          } else {
+          }
+        }
+             
+        setProfile({
+          id: user.id,
+          name: `${user.lastName} ${user.firstName}`,
+          gender: user.gender === 'M' ? 'Nam' 
+          : (user.gender === 'F' ? 'Nữ' 
+          : (user.gender === 'O' ? 'Khác' : '')) ,
+          phone: user.phonenumber,
+          address: `${user.address}`,
+          email: user.email,
+          password: '********',
+          avatar: avatarUrl
+        });
+        setForm({
+            email: user?.email ?? '',
+            firstName: user.firstName ?? '',
+            lastName: user.lastName ?? '',
+            phone: user?.phonenumber  ?? '',
+            address: user?.address ?? '',
+            gender: user?.gender ?? '',
+            image: avatarUrl
+        })
+      } catch (error) {
+        console.error('Lỗi lấy dữ liệu:', error);
+      } finally {
+      }
+    };
+
+  const [image, setImage] = useState<string | null>(null);
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
+
+     if (!result.canceled && result.assets?.length > 0) {
+    const uri = result.assets[0].uri;
+    const base64Image = result.assets[0].base64
+      ? `data:image/jpeg;base64,${result.assets[0].base64}`
+      : null;
+
+    setImage(uri); 
+    if (base64Image) {
+      setForm((prev) => ({
+        ...prev,
+        image: base64Image, 
+      }));
+    }
+  }
   };
 
   const [form, setForm] = useState({
-    email: getParamValue(params.email),
-    firstName: getParamValue(params.firstName),
-    lastName: getParamValue(params.lastName),
-    phone: getParamValue(params.phone),
-    address: getParamValue(params.address),
-    gender: getParamValue(params.gender),
-    image: getParamValue(params.avatar)
+    email: '',
+    firstName: '',
+    lastName: '',
+    phone: '',
+    address: '',
+    gender: '',
+    image: ''
   });
  
   const handleChange = (key: keyof typeof form, value: string) => {
@@ -45,14 +129,26 @@ const EditProfileForm = () => {
       const response = await editUserService(payload);
 
       if (response?.errCode === 0) {
-        Alert.alert("Thành công", "Cập nhật hồ sơ thành công!");
+       Toast.show({
+          type: 'success',
+          text1: 'Thành công',
+          text2: 'Cập nhật hồ sơ thành công!',
+         });
         router.back();
       } else {
-        Alert.alert("Lỗi", response?.errMessage || "Có lỗi xảy ra.");
+        Toast.show({
+        type: 'error',
+        text1: 'Lỗi',
+        text2: response?.errMessage || 'Có lỗi xảy ra.',
+      });
       }
     } catch (error) {
       console.error("Edit user failed", error);
-      Alert.alert("Lỗi", "Không thể cập nhật hồ sơ. Vui lòng thử lại.");
+      Toast.show({
+      type: 'error',
+      text1: 'Lỗi',
+      text2: 'Không thể cập nhật hồ sơ. Vui lòng thử lại.',
+    });
     }
   };
 
@@ -108,9 +204,9 @@ const EditProfileForm = () => {
               onValueChange={(value) => handleChange('gender', value)}
               style={styles.picker}
             >
-              <Picker.Item label="Nam" value="male" />
-              <Picker.Item label="Nữ" value="female" />
-              <Picker.Item label="Khác" value="other" />
+              <Picker.Item label="Nam" value="M" />
+              <Picker.Item label="Nữ" value="F" />
+              <Picker.Item label="Khác" value="O" />
             </Picker>
           </View>
         </View>
@@ -145,15 +241,23 @@ const EditProfileForm = () => {
 
       <View style={styles.inputContainer}>
         <Text style={styles.label}>Ảnh đại diện</Text>
-        <TouchableOpacity style={styles.uploadButton}>
+        <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
           <MaterialIcons name="camera-alt" size={24} color="white" />
           <Text style={styles.buttonText}>Thêm ảnh</Text>
         </TouchableOpacity>
         <View style={styles.imageContainer}>
+          {image ? (
+          <Image
+            source={{ uri: image }} 
+            style={styles.imagePreview}
+          />
+          ) : (
           <Image
             source={{ uri: form.image }} 
             style={styles.imagePreview}
           />
+          )}
+          
         </View>
       </View>
 

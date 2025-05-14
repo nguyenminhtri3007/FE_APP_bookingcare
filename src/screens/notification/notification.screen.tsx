@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Modal, Image
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { FilterHistoryModel } from '@/src/data/model/history.model';
@@ -19,6 +20,8 @@ import { CommonColors } from "@/src/common/resource/colors";
 import { Fonts } from "@/src/common/resource/fonts";
 import { MaterialCommunityIcons, FontAwesome5, Feather } from '@expo/vector-icons';
 import NotificationStyle from './notification.style';
+import { bufferToBase64Url } from '@/src/common/utils/file.service';
+import ImageViewer from 'react-native-image-zoom-viewer';
 
 interface SpecialtyData {
   id: number;
@@ -61,6 +64,7 @@ interface HistoryItem {
   description: string;
   doctorDataHistory: DoctorData;
   drugs: Drug[] | undefined;
+   files?: { type: string; data: number[] };
 }
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
@@ -77,6 +81,8 @@ const MedicalHistoryScreen = () => {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [patientId, setPatientId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [imageUri, setImageUri] = useState<string | null>(null); 
   
   useEffect(() => {
     const fetchPatientId = async () => {
@@ -85,6 +91,17 @@ const MedicalHistoryScreen = () => {
     };
     fetchPatientId();
   }, []);
+
+  const handleViewImage = (item: HistoryItem) => {
+  const image = bufferToBase64Url(item.files); 
+  if (image) {
+    setImageUri(image);
+    setModalVisible(true);
+  } else {
+    Alert.alert('Lỗi', 'Không có ảnh đơn thuốc để hiển thị');
+  }
+};
+
 
   useEffect(() => {
     if (patientId) {
@@ -186,7 +203,7 @@ const MedicalHistoryScreen = () => {
       </View>
       
       <View style={styles.cardActions}>
-        <TouchableOpacity style={styles.actionButton}>
+        <TouchableOpacity style={styles.actionButton} onPress={() => handleViewImage(item)}>
           <Feather name="eye" size={16} color={CommonColors.primary} />
           <Text style={styles.actionText}>Xem chi tiết</Text>
         </TouchableOpacity>
@@ -200,6 +217,7 @@ const MedicalHistoryScreen = () => {
   );
 
   return (
+    <>
     <SafeAreaView style={styles.safeArea}>
       <StatusBar backgroundColor={CommonColors.primary} barStyle="light-content" />
       
@@ -265,6 +283,76 @@ const MedicalHistoryScreen = () => {
         />
       )}
     </SafeAreaView>
+    
+  <Modal
+  visible={modalVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={{
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }}>
+    <View style={{
+      width: '90%',
+      height: '80%',
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      padding: 16,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    }}>
+      <Text style={{
+        fontSize: 18,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        marginBottom: 12,
+        color: CommonColors.primary,
+      }}>
+        Đơn thuốc / Hóa đơn
+      </Text>
+
+      {imageUri ? (
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <ImageViewer
+            imageUrls={[{ url: imageUri }]}
+            index={0}
+            onCancel={() => setModalVisible(false)}
+            enableSwipeDown
+            saveToLocalByLongPress={false}
+             backgroundColor="transparent"
+          />
+        </ScrollView>
+      ) : (
+        <Text style={{ textAlign: 'center', marginTop: 20, color: 'gray' }}>
+          Không có ảnh đơn thuốc
+        </Text>
+      )}
+
+      <TouchableOpacity
+        onPress={() => setModalVisible(false)}
+        style={{
+          marginTop: 20,
+          alignSelf: 'center',
+          backgroundColor: CommonColors.primary,
+          paddingHorizontal: 24,
+          paddingVertical: 10,
+          borderRadius: 8,
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: '600' }}>Đóng</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+</>
   );
 };
 

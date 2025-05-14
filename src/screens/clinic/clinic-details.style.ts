@@ -10,7 +10,7 @@ const ClinicDetailStyle = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 16,
-    paddingTop: 40,
+    paddingTop: 50,
     paddingBottom: 40,
    
   },

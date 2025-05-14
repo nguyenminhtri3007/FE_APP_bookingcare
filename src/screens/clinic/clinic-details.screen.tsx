@@ -6,6 +6,7 @@ import { getAllClinicById } from "@/src/data/service/clinic.service";
 import { ClinicByIdModel } from "@/src/data/model/clinic.model"; 
 import Markdown from 'react-native-markdown-display';
 import DoctorCardDetail from "./comp/profile-doctor.screen";
+import { getAllDoctors } from "@/src/data/service/doctor.service";
 
 
 const ClinicDetailsScreen = () => {
@@ -16,14 +17,21 @@ const ClinicDetailsScreen = () => {
 
 
 
-  useEffect(() => {
+ useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
       try {
         setLoading(true);
-        const res = await getAllClinicById(new ClinicByIdModel(id)); 
-        if (res && res.errCode === 0 && res.data) {
+        const res = await getAllClinicById(new ClinicByIdModel(id));
+        if (res?.errCode === 0 && res.data) {
           setDescriptionMarkdown(res.data.descriptionMarkdown || "");
+        }
+        const doctorRes = await getAllDoctors();
+        if (doctorRes?.errCode === 0 && Array.isArray(doctorRes.data)) {
+          const filtered = doctorRes.data.filter(
+           (doc: any) => doc.Doctor_Infor?.clinicData?.id?.toString() === id.toString()
+          );
+          setDoctorList(filtered);
         }
       } catch (error) {
         console.error("Lỗi khi fetch chi tiết cơ sở y tế:", error);
@@ -52,14 +60,14 @@ return (
           {descriptionMarkdown}
         </Markdown>
 
-        <Text style={styles.doctorTitle}>Danh sách bác sĩ</Text>
-        {doctorList.length === 0 ? (
-          <Text style={styles.noDoctor}>Chưa có bác sĩ nào trong cơ sở này</Text>
-        ) : (
-          doctorList.map((doc, index) => (
-            <DoctorCardDetail key={index} doctorId={doc.doctorId} />
-          ))
-        )}
+         <Text style={styles.doctorTitle}>Danh sách bác sĩ</Text>
+          {doctorList.length === 0 ? (
+            <Text style={styles.noDoctor}>Chưa có bác sĩ nào trong cơ sở này</Text>
+          ) : (
+            doctorList.map((doc, index) => (
+              <DoctorCardDetail key={index} doctorId={doc.id} />
+            ))
+          )}
       </>
     )}
   </ScrollView>

@@ -9,8 +9,8 @@ const SpecialtyDetailStyle = StyleSheet.create({
     
   },
   contentContainer: {
-    marginTop: 50,
-    paddingBottom: 60,
+    marginTop: 60,
+    paddingBottom: 70,
     paddingHorizontal: 16,
   },
   title: {

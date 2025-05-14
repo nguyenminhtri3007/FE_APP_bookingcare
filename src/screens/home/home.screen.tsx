@@ -3,14 +3,12 @@ import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, ScrollView, View, StyleSheet } from "react-native";
 import HeaderComponent from "@/src/components/header/header.comp";
-import { CategoryModel } from "@/src/data/model/category.model";
 import SpecialtyComponent from "./comp/Specialty/specialty.comp";
 import TopDoctorComponent from "./comp/doctor/doctor.comp";
 import ClinicComponent from "./comp/clinic/clinic.comp";
 import AboutVideo from "./comp/about/about.comp";
 const HomeScreen = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [categories, setCategories] = useState<CategoryModel[]>([]);
     const [isSearchOverlayVisible, setSearchOverlayVisible] = useState(false);
 
     useEffect(() => {

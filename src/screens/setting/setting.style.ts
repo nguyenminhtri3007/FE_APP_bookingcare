@@ -79,6 +79,17 @@ const SettingStyle = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    width: '100%',
+  },
+  editIcon: {
+    marginLeft: 10,
+    padding: 5,  // Thêm padding để tăng vùng có thể nhấn
+  },
 });
 
 export default SettingStyle;

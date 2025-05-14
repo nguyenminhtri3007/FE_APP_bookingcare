@@ -81,6 +81,13 @@ function RootLayoutNav() {
               presentation: 'modal'
             }}
           />
+          <Stack.Screen
+            name="(routes)/forgot-password/index"
+            options={{
+              headerShown: false,
+              presentation: 'modal'
+            }}
+          />
 
           <Stack.Screen
             name="(routes)/specialty-details/index"
@@ -119,6 +126,13 @@ function RootLayoutNav() {
             headerShown: false,
           }}
           />
+          <Stack.Screen
+            name="(routes)/edit-password/index"
+            options={{
+            title:'cập nhật hồ sơ',
+            headerShown: false,
+          }}
+          />
           
            <Stack.Screen
             name="(routes)/all-clinic/index"
@@ -151,7 +165,7 @@ function RootLayoutNav() {
             }}
           />
         </Stack>
-        <Toast config={toastConfig} />
+        <Toast config={toastConfig} topOffset={60} />
       </>
     </ToastProvider>
   );

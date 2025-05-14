@@ -117,6 +117,13 @@ const SignInScreen = () => {
                                     {errors.email === FormValidate.INVALID_INFO && (
                                         <Text style={FormStyle.valiTextFalse}>Thông tin đăng nhập không chính xác</Text>
                                     )}
+                                    <Link href={Routes.FORGOT_PASSWORD} asChild>
+                                        <TouchableOpacity style={{ alignSelf: 'flex-end', marginTop: 8 }}>
+                                            <Text style={[styles.signInTxtSpan, { fontSize: 14 }]}>
+                                                Quên mật khẩu?
+                                            </Text>
+                                        </TouchableOpacity>
+                                    </Link>                                
                                 </View>
 
                                 <TouchableOpacity

@@ -6,6 +6,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { AppConfig } from '@/src/common/config/app.config';
 import { CommonColors } from '@/src/common/resource/colors';
 import { Buffer } from 'buffer';
+import { Feather } from '@expo/vector-icons';
 
 const SettingScreen = () => {
   const [profile, setProfile] = useState<any | undefined>(undefined);
@@ -61,6 +62,7 @@ const SettingScreen = () => {
       }
            
       setProfile({
+        id: user.id,
         name: `${user.lastName} ${user.firstName}`,
         gender: user.gender === 'M' ? 'Nam' 
         : (user.gender === 'F' ? 'Nữ' 
@@ -82,16 +84,23 @@ const SettingScreen = () => {
     router.navigate ({
       pathname:"/(routes)/edit-profile",
       params: {
-        email: profile.email,
-        firstName: profile.name.split(" ").slice(-1).join(" "), 
-        lastName: profile.name.split(" ").slice(0, -1).join(" "), 
-        phone: profile.phone,
-        address: profile.address,
-        gender: profile.gender ? profile.gender :"",
-        avatar: profile.avatar ? profile.avatar : "",
+        // email: profile.email,
+        // firstName: profile.name.split(" ").slice(-1).join(" "), 
+        // lastName: profile.name.split(" ").slice(0, -1).join(" "), 
+        // phone: profile.phone,
+        // address: profile.address,
+        // gender: profile.gender ? profile.gender :"",
+        // avatar: profile.avatar ? profile.avatar : "",
+        id: profile.id
       },
     })
-   }
+   };
+   const handleEditPassword = () => {
+    router.navigate({
+      pathname:"/(routes)/edit-password"
+    })
+  };
+
 
    const handleLogout = useCallback(() => {
     console.log("Đăng xuất");
@@ -154,9 +163,17 @@ const SettingScreen = () => {
           <Text style={styles.label}>
             Email: <Text style={styles.value}>{profile.email}</Text>
           </Text>
-          <Text style={styles.label}>
-            Mật khẩu: <Text style={styles.value}>{profile.password}</Text>
-          </Text>
+          <View style={styles.passwordContainer}>
+            <Text style={styles.label}>
+              Mật khẩu: <Text style={styles.value}>{profile.password}</Text>
+            </Text>
+            <TouchableOpacity 
+              style={styles.editIcon}
+              onPress={handleEditPassword}
+            >
+              <Feather name="edit" size={18} color={CommonColors.primary} />
+            </TouchableOpacity>
+          </View>
           
           <TouchableOpacity
            style={styles.button}

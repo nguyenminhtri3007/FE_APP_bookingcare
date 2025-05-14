@@ -21,6 +21,7 @@ import {
 } from "@/src/data/model/doctor.model";
 import moment from "moment";
 import "moment/locale/vi";
+import { useRouter } from "expo-router";
 
 moment.locale("vi");
 
@@ -33,6 +34,7 @@ const DoctorCardDetail = ({ doctorId }: { doctorId: number }) => {
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [showPriceDetail, setShowPriceDetail] = useState<boolean>(false);
+  const router = useRouter();
 
   const upcomingDays = Array.from({ length: 7 }, (_, i) => {
     const date = moment().add(i, "days");
@@ -65,6 +67,18 @@ const DoctorCardDetail = ({ doctorId }: { doctorId: number }) => {
     fetchAll();
   }, [doctorId, selectedDate]);
 
+  const selectedDateMoment = moment(Number(selectedDate));
+  const isToday = selectedDateMoment.isSame(moment(), "day");
+
+  const filteredSchedule = schedule.filter((item) => {
+    if (!isToday) return true;
+
+    const timeValue = item.timeTypeData?.valueVi || item.timeType;
+    const startMoment = moment(`${selectedDateMoment.format("YYYY-MM-DD")} ${timeValue}`, "YYYY-MM-DD HH:mm");
+    const endMoment = moment(startMoment).add(1, "hour");
+    return moment().isBefore(endMoment);
+  });
+
   if (loading) return <ActivityIndicator size="small" color="#000" />;
   if (!doctorDetail) return null;
 
@@ -73,7 +87,18 @@ const DoctorCardDetail = ({ doctorId }: { doctorId: number }) => {
   return (
     <View style={styles.cardWrapper}>
       <View style={styles.row}>
-        <Image source={{ uri: doctorDetail.image }} style={styles.avatar} />
+       <View style={styles.avatarBox}>
+            <Image source={{ uri: doctorDetail.image }} style={styles.avatar} />
+            <TouchableOpacity
+              onPress={() =>
+              router.push(
+             `/doctor-details?id=${doctorDetail.id}&name=${encodeURIComponent(doctorDetail.firstName + ' ' + doctorDetail.lastName)}`
+              )
+            }
+         >
+    <Text style={styles.seeMore}>Xem thêm</Text>
+  </TouchableOpacity>
+        </View>
         <View style={styles.infoBox}>
           <Text style={styles.fullName}>{fullName}</Text>
           <Text style={styles.description}>{doctorDetail.Markdown?.description}</Text>
@@ -94,11 +119,11 @@ const DoctorCardDetail = ({ doctorId }: { doctorId: number }) => {
           </Picker>
         </View>
 
-        {schedule.length === 0 ? (
+        {filteredSchedule.length === 0 ? (
           <Text style={styles.note}>Bác sĩ không có lịch hẹn trong thời gian này</Text>
         ) : (
           <View style={styles.timeList}>
-            {schedule.map((item, idx) => (
+            {filteredSchedule.map((item, idx) => (
               <Text key={idx} style={styles.timeSlot}>{item.timeTypeData?.valueVi}</Text>
             ))}
           </View>
@@ -152,6 +177,15 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     marginRight: 12,
   },
+  avatarBox: {
+  alignItems: 'center',
+  marginRight: 12,
+},
+seeMore: {
+  color: '#1e90ff',
+  fontSize: 13,
+  marginTop: 4,
+},
   infoBox: {
     flex: 1,
     justifyContent: 'center',
