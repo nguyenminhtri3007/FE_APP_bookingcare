@@ -6,6 +6,7 @@ import { useRoute } from '@react-navigation/native';
 import * as BookingManagement from "@/src/data/management/booking.management";
 import Toast from 'react-native-toast-message';
 import BookingStyle from './booking.style';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const getVietnameseWeekday = (date: Date): string => {
   const weekdays = [
@@ -83,6 +84,7 @@ const BookingForm = () => {
 
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\d{10}$/;
@@ -99,6 +101,14 @@ const BookingForm = () => {
       }
     }
   };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+  setShowDatePicker(false);
+  if (selectedDate) {
+    const formattedDate = selectedDate.toLocaleDateString('vi-VN');
+    handleChange('birthDate', formattedDate);
+  }
+};
  
 
 
@@ -244,12 +254,24 @@ const BookingForm = () => {
         onChangeText={(text) => handleChange('reason', text)}
       />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Ngày sinh"
-        value={form.birthDate}
-        onChangeText={(text) => handleChange('birthDate', text)}
-      />
+      <TouchableOpacity
+         style={styles.input}
+         onPress={() => setShowDatePicker(true)}
+       >
+         <Text style={{ color: form.birthDate ? '#000' : '#aaa' }}>
+           {form.birthDate || 'Chọn ngày sinh'}
+         </Text>
+       </TouchableOpacity>
+
+       {showDatePicker && (
+         <DateTimePicker
+           value={form.birthDate ? new Date(form.birthDate) : new Date()}
+           mode="date"
+           display="default"
+           onChange={handleDateChange}
+           maximumDate={new Date()}          
+         />
+       )}       
 
       <Picker
         selectedValue={form.gender}

@@ -32,10 +32,11 @@ const NotificationStyle = StyleSheet.create({
         marginBottom: 8,
       },
       filterLabel: {
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: Fonts.POPPINS_MEDIUM,
         color: CommonColors.darkText || '#333',
         marginLeft: 8,
+        
       },
       filterRow: {
         flexDirection: 'row',
@@ -230,6 +231,23 @@ const NotificationStyle = StyleSheet.create({
       activeNavText: {
         color: CommonColors.primary || '#2196F3',
       },
+      searchButton: {
+    marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 50,
+  },
+  dateInput: {
+    borderWidth: 1,
+    borderColor: CommonColors.gray,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#fff',
+    marginBottom: 8,
+  },
 });
 
 export default NotificationStyle;

@@ -17,10 +17,6 @@ const HeaderComponent = (props: Props) => {
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
              <Logo width={350} height={40} />
-            {/* <TouchableOpacity onPress={props.openSearch} style={styles.searchBar}>
-                <Text style={styles.searchTxt}>Tìm kiếm sản phẩm</Text>
-                <FontAwesome name="search" size={20} color={CommonColors.gray} />
-            </TouchableOpacity> */}
         </View>
     )
 }

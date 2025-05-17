@@ -10,9 +10,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
-  Modal, Image
+  Modal, 
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { FilterHistoryModel } from '@/src/data/model/history.model';
 import { getFilteredHistories } from '@/src/data/management/history.management';
 import { AppConfig } from '@/src/common/config/app.config';
@@ -22,6 +21,7 @@ import { MaterialCommunityIcons, FontAwesome5, Feather } from '@expo/vector-icon
 import NotificationStyle from './notification.style';
 import { bufferToBase64Url } from '@/src/common/utils/file.service';
 import ImageViewer from 'react-native-image-zoom-viewer';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface SpecialtyData {
   id: number;
@@ -67,9 +67,6 @@ interface HistoryItem {
    files?: { type: string; data: number[] };
 }
 
-const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
-const YEARS = [2023, 2024, 2025];
-
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
@@ -77,12 +74,16 @@ const formatDate = (dateString: string) => {
 
 const MedicalHistoryScreen = () => {
   const [data, setData] = useState<HistoryItem[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  // const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+  // const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [patientId, setPatientId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null); 
+  const [fromDate, setFromDate] = useState(new Date());
+ const [toDate, setToDate] = useState(new Date());
+ const [showFromPicker, setShowFromPicker] = useState(false);
+ const [showToPicker, setShowToPicker] = useState(false);
   
   useEffect(() => {
     const fetchPatientId = async () => {
@@ -105,23 +106,65 @@ const MedicalHistoryScreen = () => {
 
   useEffect(() => {
     if (patientId) {
-      fetchHistory();
+      handleSearch();
     }
-  }, [patientId, selectedMonth, selectedYear]);
+  }, [patientId]);
 
-  const fetchHistory = async () => {
+  // const fetchHistory = async () => {
+  //   if (!patientId) return;
+  //   setLoading(true);
+  //   try {
+  //     const fromDate = new Date(selectedYear, selectedMonth - 1, 1);
+  //     const toDate = new Date(selectedYear, selectedMonth, 0);
+  //     const filter = new FilterHistoryModel(
+  //       patientId,
+  //       undefined,
+  //       fromDate.toISOString(),
+  //       toDate.toISOString()
+  //     );
+
+  //     const res = await getFilteredHistories(filter);
+  //     if (res.errCode === 0) {
+  //       const normalized = (res.data || []).map((item: any) => ({
+  //         ...item,
+  //         drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
+  //       }));
+  //       setData(normalized);
+  //     } else {
+  //       Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     Alert.alert('Lỗi', 'Không thể kết nối server!');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const handleSearch = async () => {
     if (!patientId) return;
+    
+    if (fromDate > toDate) {
+      Alert.alert('Lỗi', 'Ngày bắt đầu không thể lớn hơn ngày kết thúc!');
+      return;
+    }
+     const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+   const startDate = formatLocalDate(fromDate);
+  const endDate = formatLocalDate(toDate);
+    
     setLoading(true);
     try {
-      const fromDate = new Date(selectedYear, selectedMonth - 1, 1);
-      const toDate = new Date(selectedYear, selectedMonth, 0);
       const filter = new FilterHistoryModel(
         patientId,
         undefined,
-        fromDate.toISOString(),
-        toDate.toISOString()
+       startDate,
+      endDate
       );
-
       const res = await getFilteredHistories(filter);
       if (res.errCode === 0) {
         const normalized = (res.data || []).map((item: any) => ({
@@ -129,6 +172,10 @@ const MedicalHistoryScreen = () => {
           drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
         }));
         setData(normalized);
+        
+        if (normalized.length === 0) {
+          Alert.alert('Thông báo', 'Không tìm thấy kết quả nào trong khoảng thời gian này!');
+        }
       } else {
         Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
       }
@@ -139,6 +186,7 @@ const MedicalHistoryScreen = () => {
       setLoading(false);
     }
   };
+
 
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
@@ -153,6 +201,7 @@ const MedicalHistoryScreen = () => {
         <View style={styles.dateContainer}>
           <MaterialCommunityIcons  name="calendar" size={16} color={CommonColors.gray} />
           <Text style={styles.dateText}>{formatDate(item.createdAt)}</Text>
+          
         </View>
         <View style={styles.statusContainer}>
           <Text style={styles.statusText}>Đã khám</Text>
@@ -232,39 +281,50 @@ const MedicalHistoryScreen = () => {
         </View>
         
         <View style={styles.filterRow}>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedMonth}
-              onValueChange={(value) => setSelectedMonth(value)}
-              style={styles.picker}
-              mode="dropdown">
-              {MONTHS.map((month) => (
-                <Picker.Item 
-                  key={month} 
-                  label={`Tháng ${month}`} 
-                  value={month}
-                  color={CommonColors.darkText}
-                />
-              ))}
-            </Picker>
-          </View>
-          
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedYear}
-              onValueChange={(value) => setSelectedYear(value)}
-              style={styles.picker}
-              mode="dropdown">
-              {YEARS.map((year) => (
-                <Picker.Item 
-                  key={year} 
-                  label={`${year}`} 
-                  value={year} 
-                  color={CommonColors.darkText}
-                />
-              ))}
-            </Picker>
-          </View>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <Text style={styles.filterLabel}>Từ ngày</Text>
+            <TouchableOpacity
+              onPress={() => setShowFromPicker(true)}
+               style={styles.dateInput}
+            >
+              <Text>{fromDate.toLocaleDateString('vi-VN')}</Text>
+           </TouchableOpacity>
+            {showFromPicker && (
+              <DateTimePicker
+                value={fromDate}
+                mode="date"
+                display="default"
+                 onChange={(event, selectedDate) => {
+                  setShowFromPicker(false);
+                  if (selectedDate) setFromDate(selectedDate);
+                }}
+              />
+            )}
+              </View>
+
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                 <Text style={styles.filterLabel}>Đến ngày</Text>
+                 <TouchableOpacity
+                   onPress={() => setShowToPicker(true)}
+                   style={styles.dateInput}
+                >
+                   <Text>{toDate.toLocaleDateString('vi-VN')}</Text>
+                 </TouchableOpacity>
+                 {showToPicker && (
+                   <DateTimePicker
+                     value={toDate}
+                     mode="date"
+                     display="default"
+                     onChange={(event, selectedDate) => {
+                       setShowToPicker(false);
+                       if (selectedDate) setToDate(selectedDate);
+                     }}
+                   />
+                 )}
+               </View>
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch} >
+               <Feather name="search" size={24} color={CommonColors.primary} />
+            </TouchableOpacity>
         </View>
       </View>
       
