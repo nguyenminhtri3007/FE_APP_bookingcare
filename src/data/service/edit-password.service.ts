@@ -5,10 +5,14 @@ import { EditPasswordModel } from "../model/edit-password.model";
 export const editPassword = async (data: EditPasswordModel) => {
   try {
     const domain = new AppConfig().getDomain();
+    const userId = await new AppConfig().getUserId();
     const response = ServiceCore.POST(
       `${domain}`,
       `edit-password-user`,
-      data
+      {
+        id: userId,
+        ...data
+      }
     );
     return response;
   } catch (error) {

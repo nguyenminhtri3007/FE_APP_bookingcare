@@ -8,7 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { editPassword } from '@/src/data/service/edit-password.service'; 
 import { router } from 'expo-router';
 
@@ -45,16 +45,18 @@ const EditPasswordScreen = () => {
       if (response?.errCode === 0 || response?.success) {
         Toast.show({
           type: 'success',
-          text1: response.message || 'Cập nhật mật khẩu thành công!',
+          text1: 'Cập nhật mật khẩu thành công!',
         });
-        router.back();
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
+        setTimeout(() => {
+           router.back();
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+        }, 3000);
       } else {
         Toast.show({
           type: 'error',
-          text1: response.errMessage || 'Cập nhật thất bại!',
+          text1: response.errMessage || 'Mật khẩu hiện tại không đúng. Cập nhật thất bại!',
         });
       }
     } catch (err: any) {
@@ -69,21 +71,20 @@ const EditPasswordScreen = () => {
     <View style={styles.container}>
       <Text style={styles.title}>Cập nhật mật khẩu</Text>
 
-      {/* Mật khẩu hiện tại */}
-      <Text style={styles.label}>Mật khẩu hiện tại</Text>
+     <Text style={styles.label}>Mật khẩu hiện tại</Text>
       <View style={styles.passwordField}>
         <TextInput
           style={styles.input}
           secureTextEntry={!showCurrent}
           value={currentPassword}
           onChangeText={setCurrentPassword}
+          placeholder="Nhập mật khẩu hiện tại"
         />
-        <Pressable onPress={() => setShowCurrent(!showCurrent)}>
-          <MaterialCommunityIcons
-            name={showCurrent ? 'eye-off' : 'eye'}
-            size={20}
-            color="#666"
-          />
+        <Pressable
+          onPress={() => setShowCurrent(!showCurrent)}
+          style={styles.eyeIcon}
+        >
+          <Ionicons name={showCurrent ? 'eye-off' : 'eye'} size={20} color="#666" />
         </Pressable>
       </View>
 
@@ -95,13 +96,13 @@ const EditPasswordScreen = () => {
           secureTextEntry={!showNew}
           value={newPassword}
           onChangeText={setNewPassword}
+          placeholder="Nhập mật khẩu mới"
         />
-        <Pressable onPress={() => setShowNew(!showNew)}>
-          <MaterialCommunityIcons
-            name={showNew ? 'eye-off' : 'eye'}
-            size={20}
-            color="#666"
-          />
+        <Pressable
+          onPress={() => setShowNew(!showNew)}
+          style={styles.eyeIcon}
+        >
+          <Ionicons name={showCurrent ? 'eye-off' : 'eye'} size={20} color="#666" />
         </Pressable>
       </View>
 
@@ -112,13 +113,13 @@ const EditPasswordScreen = () => {
           secureTextEntry={!showConfirm}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
+          placeholder="Xác nhận mật khẩu"
         />
-        <Pressable onPress={() => setShowConfirm(!showConfirm)}>
-          <MaterialCommunityIcons
-            name={showConfirm ? 'eye-off' : 'eye'}
-            size={20}
-            color="#666"
-          />
+        <Pressable
+          onPress={() => setShowConfirm(!showConfirm)}
+          style={styles.eyeIcon}
+        >
+          <Ionicons name={showCurrent ? 'eye-off' : 'eye'} size={20} color="#666" />
         </Pressable>
       </View>
 
@@ -155,16 +156,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   passwordField: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  input: {
-    flex: 1,
-    height: 42,
+  position: 'relative',
+  justifyContent: 'center',
+  marginBottom: 10,
+},
+input: {
+  height: 42,
+  borderWidth: 1,
+  borderColor: '#ccc',
+  borderRadius: 6,
+  paddingHorizontal: 10,
+  paddingRight: 40, 
+},
+eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
   },
   buttonRow: {
     marginTop: 30,

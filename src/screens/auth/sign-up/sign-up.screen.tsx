@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View, Pressable } from "react-native";
 import SignUpStyle from "./styles/sign-up.style";
 import InputField from "@/src/components/inputField/inputField.comp";
 import { CommonColors } from "@/src/common/resource/colors";
@@ -28,6 +28,7 @@ const SignUpScreen = () => {
         lastName: "",
         address: ""
     });
+    const [showNew, setShowNew] = useState(false);
 
     const validateEmail = (email: string) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -123,7 +124,7 @@ const SignUpScreen = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Create an account</Text>
+            <Text style={styles.title}>Tạo một tài khoản</Text>
             <View style={[
                 styles.inputWithIcon,
                 errors.email ? styles.errorInput : null
@@ -136,7 +137,7 @@ const SignUpScreen = () => {
                 />
                 <InputField
                     style={styles.inputWithIconField}
-                    placeholder="Enter your email address"
+                    placeholder="Nhập email của bạn"
                     value={form.email}
                     onChangeText={value => handleChange("email", value)}
                     autoCapitalize="none"
@@ -158,12 +159,18 @@ const SignUpScreen = () => {
                 />
                 <InputField
                     style={styles.inputWithIconField}
-                    placeholder="Enter your password"
+                    placeholder="Nhập password của bạn"
                     value={form.password}
                     onChangeText={value => handleChange("password", value)}
-                    secureTextEntry
+                    secureTextEntry={!showNew}
                     placeholderTextColor={CommonColors.gray}
                 />
+                <Pressable
+                          onPress={() => setShowNew(!showNew)}
+                          style={styles.eyeIcon}
+                        >
+                          <Ionicons name={showNew ? 'eye-off' : 'eye'} size={20} color="#666" />
+                        </Pressable>
             </View>
             {errors.password ? <Text style={styles.errorText}>{errors.password}</Text> : null}
 
@@ -179,7 +186,7 @@ const SignUpScreen = () => {
                 />
                 <InputField
                     style={styles.inputWithIconField}
-                    placeholder="Enter your first name"
+                    placeholder="Nhập họ của bạn"
                     value={form.firstName}
                     onChangeText={value => handleChange("firstName", value)}
                     autoCapitalize="words"
@@ -200,7 +207,7 @@ const SignUpScreen = () => {
                 />
                 <InputField
                     style={styles.inputWithIconField}
-                    placeholder="Enter your last name"
+                    placeholder="Nhập tên của bạn"
                     value={form.lastName}
                     onChangeText={value => handleChange("lastName", value)}
                     autoCapitalize="words"
@@ -221,7 +228,7 @@ const SignUpScreen = () => {
                 />
                 <InputField
                     style={styles.inputWithIconField}
-                    placeholder="Enter your address"
+                    placeholder="Nhập địa chỉ của bạn"
                     value={form.address}
                     onChangeText={value => handleChange("address", value)}
                     autoCapitalize="sentences"
@@ -231,7 +238,7 @@ const SignUpScreen = () => {
             {errors.address ? <Text style={styles.errorText}>{errors.address}</Text> : null}
 
             <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
-                <Text style={styles.btnTxt}>Create an Account</Text>
+                <Text style={styles.btnTxt}>Đăng ký ngay</Text>
             </TouchableOpacity>
 
             <View style={styles.signInWrapper}>

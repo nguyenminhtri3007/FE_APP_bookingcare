@@ -1,4 +1,6 @@
-import { Text, TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View,
+    Pressable
+ } from "react-native";
 import SignInStyle from "./sign-in.style";
 import { Link, router } from "expo-router";
 import InputField from "@/src/components/inputField/inputField.comp";
@@ -15,6 +17,7 @@ import { HttpCode } from "@/src/common/resource/http-code";
 import { AppConfig } from "@/src/common/config/app.config";
 import { UserModel } from "@/src/data/model/user.model";
 import { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 
 const signInform = Yup.object().shape({
@@ -33,7 +36,8 @@ const SignInScreen = () => {
         INVALID_EMAIL: 'invalidEmail',
         MIN_LENGTH_6: 'minLength6',
         INVALID_INFO: 'invalidInfo'
-    }
+    };
+    const [showNew, setShowNew] = useState(false);
     const handleSignIn = async (
         email: string,
         password: string,
@@ -103,11 +107,17 @@ const SignInScreen = () => {
                                     <InputField
                                         placeholder="Nhập mật khẩu"
                                         placeholderTextColor={CommonColors.gray}
-                                        secureTextEntry={true}
+                                         secureTextEntry={!showNew}
                                         onChangeText={handleChange('password')}
                                         onBlur={handleBlur('password')}
                                         invalid={!!(touched.password && errors.password) || errors.email === FormValidate.INVALID_INFO}
                                     />
+                                    <Pressable
+                                      onPress={() => setShowNew(!showNew)}
+                                      style={styles.eyeIcon}
+                                     >
+                                       <Ionicons name={showNew ? 'eye-off' : 'eye'} size={20} color="#666" />
+                                     </Pressable>
                                     {touched.password && errors.password === FormValidate.REQUIRED && (
                                         <Text style={FormStyle.valiTextFalse}>Mật khẩu không được để trống</Text>
                                     )}

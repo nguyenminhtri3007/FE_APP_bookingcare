@@ -103,7 +103,13 @@ const SignUpStyle = StyleSheet.create({
         borderWidth: 0,
         fontFamily: Fonts.POPPINS_REGULAR,
         fontSize: 16,
-    }
+    },
+    eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
 });
 
 export default SignUpStyle;

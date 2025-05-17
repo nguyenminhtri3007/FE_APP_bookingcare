@@ -54,7 +54,13 @@ const SignInStyle = StyleSheet.create({
         borderTopWidth: 1,
         width: '30%',
         marginBottom: 30
-    }
+    },
+    eyeIcon: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+  },
 });
 
 export default SignInStyle;
