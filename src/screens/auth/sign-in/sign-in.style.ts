@@ -61,6 +61,26 @@ const SignInStyle = StyleSheet.create({
     top: '50%',
     transform: [{ translateY: -10 }],
   },
+   inputWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'relative',
+        width: '100%',
+        borderWidth: 1,
+        borderRadius: 12,
+        height:50
+    },
+    inputIconContainer: {
+        position: 'absolute',
+        left: 12,
+        zIndex: 1,
+        height: '100%',
+        justifyContent: 'center',
+    },
+    inputWithIcon: {
+        paddingLeft: 40, 
+    },
+    
 });
 
 export default SignInStyle;

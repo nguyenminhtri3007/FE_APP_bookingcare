@@ -74,8 +74,6 @@ const formatDate = (dateString: string) => {
 
 const MedicalHistoryScreen = () => {
   const [data, setData] = useState<HistoryItem[]>([]);
-  // const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-  // const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [patientId, setPatientId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -106,40 +104,39 @@ const MedicalHistoryScreen = () => {
 
   useEffect(() => {
     if (patientId) {
-      handleSearch();
+      fetchAllHistory();
     }
   }, [patientId]);
 
-  // const fetchHistory = async () => {
-  //   if (!patientId) return;
-  //   setLoading(true);
-  //   try {
-  //     const fromDate = new Date(selectedYear, selectedMonth - 1, 1);
-  //     const toDate = new Date(selectedYear, selectedMonth, 0);
-  //     const filter = new FilterHistoryModel(
-  //       patientId,
-  //       undefined,
-  //       fromDate.toISOString(),
-  //       toDate.toISOString()
-  //     );
+  const fetchAllHistory = async () => {
+    if (!patientId) return;
+    setLoading(true);
+    try {
+     
+      const filter = new FilterHistoryModel(
+        patientId,
+        undefined,
+        undefined,
+        undefined
+      );
+      const res = await getFilteredHistories(filter);
+      if (res.errCode === 0) {
+        const normalized = (res.data || []).map((item: any) => ({
+          ...item,
+          drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
+        }));
+        setData(normalized);
+      } else {
+        Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Lỗi', 'Không thể kết nối server!');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  //     const res = await getFilteredHistories(filter);
-  //     if (res.errCode === 0) {
-  //       const normalized = (res.data || []).map((item: any) => ({
-  //         ...item,
-  //         drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
-  //       }));
-  //       setData(normalized);
-  //     } else {
-  //       Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     Alert.alert('Lỗi', 'Không thể kết nối server!');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleSearch = async () => {
     if (!patientId) return;
@@ -191,7 +188,7 @@ const MedicalHistoryScreen = () => {
   const renderEmptyComponent = () => (
     <View style={styles.emptyContainer}>
       <MaterialCommunityIcons  name="file-document-outline" size={60} color={CommonColors.gray} />
-      <Text style={styles.emptyText}>Không có lịch sử khám bệnh trong tháng này</Text>
+      <Text style={styles.emptyText}>Không có lịch sử khám bệnh </Text>
     </View>
   );
 

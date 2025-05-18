@@ -102,9 +102,16 @@ const SettingScreen = () => {
   };
 
 
-   const handleLogout = useCallback(() => {
-    console.log("Đăng xuất");
-  }, []);
+   const handleLogout = useCallback(async () => {
+    try {
+      // Xóa tất cả dữ liệu đã lưu
+      const appConfig = new AppConfig();
+      await appConfig.clear();
+      router.replace("/(routes)/sign-in");
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    }
+  }, [router]);
 
  
   const renderAvatar = () => {

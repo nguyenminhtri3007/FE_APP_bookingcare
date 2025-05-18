@@ -5,6 +5,7 @@ import SpecialtyComponent from "./comp/Specialty/specialty.comp";
 import TopDoctorComponent from "./comp/doctor/doctor.comp";
 import ClinicComponent from "./comp/clinic/clinic.comp";
 import AboutVideo from "./comp/about/about.comp";
+import AIAssistant from "@/src/components/ai-assistant";
 
 const HomeScreen = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -39,6 +40,8 @@ const HomeScreen = () => {
                     <ActivityIndicator size="large" />
                 </View>
             ) : (
+                <>
+                   
                 <ScrollView
                     style={styles.scrollView}
                     contentContainerStyle={styles.scrollContent}
@@ -68,6 +71,9 @@ const HomeScreen = () => {
                     <TopDoctorComponent />
                     <AboutVideo />
                 </ScrollView>
+
+             <AIAssistant />
+              </>
             )}
         </View>
     );

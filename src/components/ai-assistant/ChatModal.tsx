@@ -1,0 +1,718 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  FlatList,
+  useWindowDimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ChatbotMessageModel, ChatHistoryModel } from '@/src/data/model/chatbot.model';
+import * as ChatbotManagement from '@/src/data/management/chatbot.management';
+import Markdown from "react-native-markdown-display";
+
+interface ChatModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+interface Message {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+}
+
+interface ChatSession {
+  id: string;
+  title: string;
+  messages: Message[];
+  timestamp: Date;
+}
+
+const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
+  const [activeSessionIndex, setActiveSessionIndex] = useState(0);
+  
+  const scrollViewRef = useRef<ScrollView>(null);
+   const { width } = useWindowDimensions();
+
+  useEffect(() => {
+    if (visible) {
+      showWelcomeMessage();
+      loadSessionsInBackground();
+    }
+  }, [visible]);
+
+  const loadSessionsInBackground = async () => {
+    try {
+      const savedSessionId = await AsyncStorage.getItem('ai_assistant_session_id');
+      const userIdStr = await AsyncStorage.getItem('userId');
+      const savedSessionsStr = await AsyncStorage.getItem('ai_assistant_chat_sessions');
+      
+      setSessionId(savedSessionId);
+      if (userIdStr) setUserId(parseInt(userIdStr, 10));
+      if (savedSessionsStr) {
+        const savedSessions = JSON.parse(savedSessionsStr) as ChatSession[];
+        setChatSessions(savedSessions);
+      
+        const activeIndex = savedSessions.findIndex(s => s.id === savedSessionId);
+        if (activeIndex >= 0) {
+          setActiveSessionIndex(activeIndex);
+        }
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải dữ liệu phiên:', error);
+    }
+  };
+  const showWelcomeMessage = () => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        content: 'Xin chào! Tôi là trợ lý ảo của BookingCare. Tôi có thể giúp gì cho bạn?',
+        isUser: false,
+        timestamp: new Date()
+      }
+    ]);
+  };
+
+  const fetchChatHistory = async (chatSessionId: string) => {
+    try {
+      setLoading(true);
+      const response = await ChatbotManagement.getChatHistory(chatSessionId);
+      
+      if (response.errCode === 0 && response.data) {
+        const historyMessages: Message[] = [];
+        
+        response.data.forEach((item: ChatHistoryModel) => {
+          historyMessages.push({
+            id: `user_${item.id}`,
+            content: item.message,
+            isUser: true,
+            timestamp: new Date(item.createdAt)
+          });
+          historyMessages.push({
+            id: `bot_${item.id}`,
+            content: item.response,
+            isUser: false,
+            timestamp: new Date(item.createdAt)
+          });
+        });
+        
+        setMessages(historyMessages);
+        
+        const session: ChatSession = {
+          id: chatSessionId,
+          title: getSessionTitle(historyMessages),
+          messages: historyMessages,
+          timestamp: new Date()
+        };
+        
+        await updateChatSessions(session);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tải lịch sử trò chuyện:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSessionTitle = (messages: Message[]): string => {
+    const firstUserMessage = messages.find(m => m.isUser);
+    if (firstUserMessage) {
+      return firstUserMessage.content.length > 20 
+        ? `${firstUserMessage.content.substring(0, 20)}...` 
+        : firstUserMessage.content;
+    }
+    
+    return `Cuộc trò chuyện - ${new Date().toLocaleDateString('vi-VN')}`;
+  };
+
+  const updateChatSessions = async (session: ChatSession) => {
+    try {
+      const savedSessionsStr = await AsyncStorage.getItem('ai_assistant_chat_sessions');
+      let sessions: ChatSession[] = [];
+      
+      if (savedSessionsStr) {
+        sessions = JSON.parse(savedSessionsStr) as ChatSession[];
+      }
+      
+      const existingIndex = sessions.findIndex(s => s.id === session.id);
+      
+      if (existingIndex >= 0) {
+        sessions[existingIndex] = session;
+      } else {
+        sessions.unshift(session);
+      }
+      
+     
+      await AsyncStorage.setItem('ai_assistant_chat_sessions', JSON.stringify(sessions));
+      setChatSessions(sessions);
+    } catch (error) {
+      console.error('Lỗi khi cập nhật danh sách phiên trò chuyện:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    
+    const userMessage: Message = {
+      id: `user_${Date.now()}`,
+      content: message.trim(),
+      isUser: true,
+      timestamp: new Date()
+    };
+    
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setMessage('');
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+    
+    try {
+      setLoading(true);
+      
+      const chatbotMessage = new ChatbotMessageModel(
+        message.trim(),
+        userId || undefined,
+        sessionId || undefined
+      );
+      
+      const response = await ChatbotManagement.sendMessage(chatbotMessage);
+      
+      if (response.errCode === 0) {
+        const newSessionId = response.sessionId || sessionId;
+        
+        if (newSessionId && (!sessionId || sessionId !== newSessionId)) {
+          setSessionId(newSessionId);
+          await AsyncStorage.setItem('ai_assistant_session_id', newSessionId);
+        }
+        
+        const botMessage: Message = {
+          id: `bot_${Date.now()}`,
+          content: response.data,
+          isUser: false,
+          timestamp: new Date()
+        };
+        
+        const updatedMessages = [...newMessages, botMessage];
+        setMessages(updatedMessages);
+        
+       
+        const currentSession: ChatSession = {
+          id: newSessionId!,
+          title: getSessionTitle(updatedMessages),
+          messages: updatedMessages,
+          timestamp: new Date()
+        };
+        
+        await updateChatSessions(currentSession);
+        
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Lỗi khi gửi tin nhắn:', error);
+      const errorMessage: Message = {
+        id: `error_${Date.now()}`,
+        content: 'Xin lỗi, đã xảy ra lỗi khi gửi tin nhắn. Vui lòng thử lại sau.',
+        isUser: false,
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startNewChat = async () => {
+   
+    const newSessionId = `session_${Date.now()}`;
+    setSessionId(newSessionId);
+    await AsyncStorage.setItem('ai_assistant_session_id', newSessionId);
+    
+    const welcomeMessage: Message = {
+      id: Date.now().toString(),
+      content: 'Xin chào! Tôi là trợ lý ảo của BookingCare. Tôi có thể giúp gì cho bạn?',
+      isUser: false,
+      timestamp: new Date()
+    };
+    
+    setMessages([welcomeMessage]);
+   
+    const newSession: ChatSession = {
+      id: newSessionId,
+      title: 'Cuộc trò chuyện mới',
+      messages: [welcomeMessage],
+      timestamp: new Date()
+    };
+    
+    const updatedSessions = [newSession, ...chatSessions];
+    setChatSessions(updatedSessions);
+    setActiveSessionIndex(0);
+    
+    await AsyncStorage.setItem('ai_assistant_chat_sessions', JSON.stringify(updatedSessions));
+    
+
+    setShowHistory(false);
+  };
+
+
+  const switchToSession = async (sessionIndex: number) => {
+    const session = chatSessions[sessionIndex];
+    setActiveSessionIndex(sessionIndex);
+    setSessionId(session.id);
+    setMessages(session.messages);
+    await AsyncStorage.setItem('ai_assistant_session_id', session.id);
+    setShowHistory(false);
+  };
+
+
+  const deleteSession = async (sessionIndex: number) => {
+    const updatedSessions = [...chatSessions];
+    updatedSessions.splice(sessionIndex, 1);
+    setChatSessions(updatedSessions);
+    
+
+    await AsyncStorage.setItem('ai_assistant_chat_sessions', JSON.stringify(updatedSessions));
+    
+
+    if (sessionIndex === activeSessionIndex) {
+      if (updatedSessions.length > 0) {
+        const newIndex = 0;
+        setActiveSessionIndex(newIndex);
+        setSessionId(updatedSessions[newIndex].id);
+        setMessages(updatedSessions[newIndex].messages);
+        await AsyncStorage.setItem('ai_assistant_session_id', updatedSessions[newIndex].id);
+      } else {
+      
+        await startNewChat();
+      }
+    } else if (sessionIndex < activeSessionIndex) {
+  
+      setActiveSessionIndex(activeSessionIndex - 1);
+    }
+  };
+
+  const formatTime = (date: Date) => {
+    return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+
+  const renderChatHistory = () => {
+    return (
+      <Modal
+        visible={showHistory}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowHistory(false)}
+      >
+        <View style={styles.historyModal}>
+          <View style={styles.historyContainer}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Lịch sử trò chuyện</Text>
+              <TouchableOpacity onPress={() => setShowHistory(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={chatSessions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item, index }) => (
+                <View style={styles.historyItem}>
+                  <TouchableOpacity
+                    style={[
+                      styles.historyItemContent,
+                      index === activeSessionIndex && styles.activeHistoryItem
+                    ]}
+                    onPress={() => switchToSession(index)}
+                  >
+                    <View style={styles.historyItemInfo}>
+                      <Text style={styles.historyItemTitle} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.historyItemDate}>
+                        {formatDate(new Date(item.timestamp))}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => deleteSession(index)}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#ff6b6b" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              ListEmptyComponent={
+                <View style={styles.emptyHistory}>
+                  <Text style={styles.emptyHistoryText}>
+                    Chưa có cuộc trò chuyện nào
+                  </Text>
+                </View>
+              }
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  };
+
+  
+  
+  const renderMessageContent = (content: string, isUser: boolean) => {
+  if (isUser) {
+    return <Text style={styles.userText}>{content}</Text>;
+  } else {
+    return (
+      <Markdown
+        style={{
+          body: { color: '#333' },
+          text: { color: '#333' },
+          strong: { fontWeight: 'bold' },
+          em: { fontStyle: 'italic' },
+          heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+          heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+          heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+          list_item: { marginVertical: 2 },
+          link: { color: '#0066cc' },
+          code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
+          code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+          fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 }
+        }}
+      >
+        {content}
+      </Markdown>
+    );
+  }
+};
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent={true}
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalContainer}
+        >
+          <View style={styles.chatContainer}>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={styles.headerLeft}>
+                <Text style={styles.title}>Trợ lý AI</Text>
+                {chatSessions.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.historyButton}
+                    onPress={() => setShowHistory(true)}
+                  >
+                    <Ionicons name="time-outline" size={20} color="#0066cc" />
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={styles.headerBtns}>
+                <TouchableOpacity onPress={startNewChat} style={styles.newChatBtn}>
+                  <Ionicons name="add-circle-outline" size={24} color="#0066cc" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={onClose}>
+                  <Ionicons name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.messagesContainer}
+              contentContainerStyle={styles.messagesContent}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+            >
+              {messages.map(item => (
+                <View
+                  key={item.id}
+                  style={[
+                    styles.messageBubble,
+                    item.isUser ? styles.userBubble : styles.botBubble
+                  ]}
+                >
+                  {/* <Text style={item.isUser ? styles.userText : styles.botText}>
+                    {item.content}
+                  </Text> */}
+                  {renderMessageContent(item.content, item.isUser)}
+                  <Text 
+                    style={[
+                      styles.timestamp,
+                      item.isUser ? styles.userTimestamp : styles.botTimestamp
+                    ]}
+                  >
+                    {formatTime(new Date(item.timestamp))}
+                  </Text>
+                </View>
+              ))}
+              
+              {loading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#0066cc" />
+                </View>
+              )}
+            </ScrollView>
+            
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.input}
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Nhập câu hỏi..."
+                placeholderTextColor="#999"
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.sendButton,
+                  (!message.trim() || loading) && styles.disabledButton
+                ]}
+                onPress={sendMessage}
+                disabled={!message.trim() || loading}
+              >
+                <Ionicons name="send" size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+      
+      {/* Modal hiển thị danh sách lịch sử trò chuyện */}
+      {renderChatHistory()}
+    </Modal>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  chatContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '90%',
+    overflow: 'hidden',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  headerBtns: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  newChatBtn: {
+    marginRight: 15,
+  },
+  historyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 10,
+    backgroundColor: '#f0f7ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 14,
+  },
+  messagesContainer: {
+    flex: 1,
+    backgroundColor: '#f9f9f9',
+  },
+  messagesContent: {
+    padding: 15,
+    paddingBottom: 20,
+  },
+  messageBubble: {
+    padding: 12,
+    borderRadius: 20,
+    marginVertical: 5,
+    maxWidth: '85%',
+  },
+  userBubble: {
+    backgroundColor: '#0066cc',
+    alignSelf: 'flex-end',
+    borderBottomRightRadius: 5,
+  },
+  botBubble: {
+    backgroundColor: '#e9e9e9',
+    alignSelf: 'flex-start',
+    borderBottomLeftRadius: 5,
+  },
+  userText: {
+    color: '#fff',
+  },
+  botText: {
+    color: '#333',
+  },
+  timestamp: {
+    fontSize: 10,
+    opacity: 0.7,
+    alignSelf: 'flex-end',
+    marginTop: 4,
+  },
+  userTimestamp: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  botTimestamp: {
+    color: 'rgba(51, 51, 51, 0.7)',
+  },
+  loadingContainer: {
+    padding: 10,
+    alignSelf: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  input: {
+    flex: 1,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginRight: 10,
+    fontSize: 16,
+    maxHeight: 100,
+  },
+  sendButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#0066cc',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#b3cce6',
+  },
+  historyModal: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    width: '90%',
+    maxHeight: '80%',
+    overflow: 'hidden',
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  historyTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  historyItemContent: {
+    flex: 1,
+    padding: 15,
+  },
+  activeHistoryItem: {
+    backgroundColor: '#e6f2ff',
+  },
+  historyItemInfo: {
+    flexDirection: 'column',
+  },
+  historyItemTitle: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 5,
+  },
+  historyItemDate: {
+    fontSize: 12,
+    color: '#999',
+  },
+  deleteButton: {
+    padding: 15,
+  },
+  emptyHistory: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyHistoryText: {
+    color: '#999',
+    fontSize: 16,
+  },
+  historyButtonText: {
+    color: '#0066cc',
+    fontSize: 12,
+    marginLeft: 4,
+    fontWeight: '500',
+  },
+});
+
+export default ChatModal;
