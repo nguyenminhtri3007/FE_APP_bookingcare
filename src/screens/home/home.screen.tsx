@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Image, ScrollView, View, StyleSheet, TouchableOpacity,  StatusBar,
+ } from "react-native";
 import HeaderComponent from "@/src/components/header/header.comp";
 import SpecialtyComponent from "./comp/Specialty/specialty.comp";
 import TopDoctorComponent from "./comp/doctor/doctor.comp";
 import ClinicComponent from "./comp/clinic/clinic.comp";
 import AboutVideo from "./comp/about/about.comp";
 import AIAssistant from "@/src/components/ai-assistant";
+import { CommonColors } from "@/src/common/resource/colors";
 
 const HomeScreen = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -34,6 +36,7 @@ const HomeScreen = () => {
     
     return (
         <View style={styles.container}>
+              <StatusBar backgroundColor={CommonColors.primary} barStyle="light-content" />
             <HeaderComponent openSearch={() => setSearchOverlayVisible(true)} />
             {isLoading ? (
                 <View style={styles.loadingContainer}>

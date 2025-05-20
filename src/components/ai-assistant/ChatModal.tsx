@@ -20,6 +20,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChatbotMessageModel, ChatHistoryModel } from '@/src/data/model/chatbot.model';
 import * as ChatbotManagement from '@/src/data/management/chatbot.management';
 import Markdown from "react-native-markdown-display";
+import { AppConfig } from '@/src/common/config/app.config';
+
+const appConfig = new AppConfig();
 
 interface ChatModalProps {
   visible: boolean;
@@ -62,19 +65,39 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
 
   const loadSessionsInBackground = async () => {
     try {
-      const savedSessionId = await AsyncStorage.getItem('ai_assistant_session_id');
-      const userIdStr = await AsyncStorage.getItem('userId');
-      const savedSessionsStr = await AsyncStorage.getItem('ai_assistant_chat_sessions');
-      
-      setSessionId(savedSessionId);
-      if (userIdStr) setUserId(parseInt(userIdStr, 10));
-      if (savedSessionsStr) {
-        const savedSessions = JSON.parse(savedSessionsStr) as ChatSession[];
-        setChatSessions(savedSessions);
-      
-        const activeIndex = savedSessions.findIndex(s => s.id === savedSessionId);
-        if (activeIndex >= 0) {
-          setActiveSessionIndex(activeIndex);
+      const userId = await appConfig.getUserId();
+      setUserId(userId);
+
+      if (userId) {
+        // Call API lấy session theo userId
+        const response = await fetch(`${appConfig.getDomain()}/get-user-chat-sessions?userId=${userId}`);
+        const result = await response.json();
+        if (result.errCode === 0 && result.data) {
+          const sessions = result.data.map((item: any) => ({
+            id: item.sessionId,
+            title: item.previewMessage.length > 20 ? item.previewMessage.substring(0, 20) + '...' : item.previewMessage,
+            messages: [],
+            timestamp: new Date(item.lastActivity)
+          }));
+          setChatSessions(sessions);
+          if (sessions.length > 0) {
+            setActiveSessionIndex(0);
+            setSessionId(sessions[0].id);
+            await fetchChatHistory(sessions[0].id);
+          }
+        }
+      } else {
+        // Nếu chưa đăng nhập, lấy local như cũ
+        const savedSessionId = await AsyncStorage.getItem('ai_assistant_session_id');
+        const savedSessionsStr = await AsyncStorage.getItem('ai_assistant_chat_sessions');
+        setSessionId(savedSessionId);
+        if (savedSessionsStr) {
+          const savedSessions = JSON.parse(savedSessionsStr) as ChatSession[];
+          setChatSessions(savedSessions);
+          const activeIndex = savedSessions.findIndex(s => s.id === savedSessionId);
+          if (activeIndex >= 0) {
+            setActiveSessionIndex(activeIndex);
+          }
         }
       }
     } catch (error) {
@@ -95,36 +118,39 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
   const fetchChatHistory = async (chatSessionId: string) => {
     try {
       setLoading(true);
-      const response = await ChatbotManagement.getChatHistory(chatSessionId);
-      
-      if (response.errCode === 0 && response.data) {
-        const historyMessages: Message[] = [];
-        
-        response.data.forEach((item: ChatHistoryModel) => {
-          historyMessages.push({
-            id: `user_${item.id}`,
-            content: item.message,
-            isUser: true,
-            timestamp: new Date(item.createdAt)
+      if (userId) {
+        // Call API lấy lịch sử chat theo sessionId
+        const response = await fetch(`${appConfig.getDomain()}/get-chat-history?sessionId=${chatSessionId}`);
+        const result = await response.json();
+        if (result.errCode === 0 && result.data) {
+          const historyMessages: Message[] = [];
+          result.data.forEach((item: any) => {
+            historyMessages.push({
+              id: `user_${item.id}`,
+              content: item.message,
+              isUser: true,
+              timestamp: new Date(item.createdAt)
+            });
+            historyMessages.push({
+              id: `bot_${item.id}`,
+              content: item.response,
+              isUser: false,
+              timestamp: new Date(item.createdAt)
+            });
           });
-          historyMessages.push({
-            id: `bot_${item.id}`,
-            content: item.response,
-            isUser: false,
-            timestamp: new Date(item.createdAt)
-          });
-        });
-        
-        setMessages(historyMessages);
-        
-        const session: ChatSession = {
-          id: chatSessionId,
-          title: getSessionTitle(historyMessages),
-          messages: historyMessages,
-          timestamp: new Date()
-        };
-        
-        await updateChatSessions(session);
+          setMessages(historyMessages);
+          setChatSessions(prev => prev.map(s => s.id === chatSessionId ? { ...s, messages: historyMessages } : s));
+        }
+      } else {
+        // Nếu chưa đăng nhập, lấy local như cũ
+        const savedSessionsStr = await AsyncStorage.getItem('ai_assistant_chat_sessions');
+        if (savedSessionsStr) {
+          const savedSessions = JSON.parse(savedSessionsStr) as ChatSession[];
+          const session = savedSessions.find(s => s.id === chatSessionId);
+          if (session) {
+            setMessages(session.messages);
+          }
+        }
       }
     } catch (error) {
       console.error('Lỗi khi tải lịch sử trò chuyện:', error);
@@ -188,7 +214,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
     
     try {
       setLoading(true);
-      
+      const userId = await appConfig.getUserId();
       const chatbotMessage = new ChatbotMessageModel(
         message.trim(),
         userId || undefined,
@@ -215,15 +241,19 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
         const updatedMessages = [...newMessages, botMessage];
         setMessages(updatedMessages);
         
-       
-        const currentSession: ChatSession = {
-          id: newSessionId!,
-          title: getSessionTitle(updatedMessages),
-          messages: updatedMessages,
-          timestamp: new Date()
-        };
-        
-        await updateChatSessions(currentSession);
+         if (!userId) {
+          // Nếu chưa đăng nhập, cập nhật local
+          const currentSession: ChatSession = {
+            id: newSessionId!,
+            title: getSessionTitle(updatedMessages),
+            messages: updatedMessages,
+            timestamp: new Date()
+          };
+          await updateChatSessions(currentSession);
+        } else {
+          // Nếu đã đăng nhập, reload lại session list và history từ server
+          await loadSessionsInBackground();
+        }
         
         setTimeout(() => {
           scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -281,7 +311,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
     const session = chatSessions[sessionIndex];
     setActiveSessionIndex(sessionIndex);
     setSessionId(session.id);
-    setMessages(session.messages);
+    await fetchChatHistory(session.id);
     await AsyncStorage.setItem('ai_assistant_session_id', session.id);
     setShowHistory(false);
   };
@@ -301,7 +331,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
         const newIndex = 0;
         setActiveSessionIndex(newIndex);
         setSessionId(updatedSessions[newIndex].id);
-        setMessages(updatedSessions[newIndex].messages);
+         await fetchChatHistory(updatedSessions[newIndex].id);
         await AsyncStorage.setItem('ai_assistant_session_id', updatedSessions[newIndex].id);
       } else {
       
@@ -387,13 +417,35 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
     );
   };
 
+  function normalizeMarkdown(md: string): string {
+  let result = md.replace(/\\n/g, '\n');
+  result = result.replace(/\\"/g, '"');
+  result = result.replace(/\\'/g, "'");
+  
+  result = result.replace(/([*\-]\s.+)\n(?![*\-])/g, '$1\n\n');
+  result = result.replace(/([*\-])\s+/g, '$1 ');
+  result = result.replace(/\n{3,}/g, '\n\n');
+  result = result.replace(/:\n/g, ': \n');
+  result = result.replace(/(\n[^\n*\-].+)\n(?=[^\n*\-])/g, '$1\n\n');
+  result = result.replace(/:\s+/g, ': ');
+  result = result.replace(/(\* .*?)(?=\n\*|\n[^\*]|$)/g, '$1\n');
+  return result;
+}
+
   
   
   const renderMessageContent = (content: string, isUser: boolean) => {
   if (isUser) {
     return <Text style={styles.userText}>{content}</Text>;
   } else {
+    let adjustedContent = content;
+    if (!adjustedContent.includes('\n\n')) {
+      adjustedContent = adjustedContent.replace(/^(.*?:)(.*)$/m, '$1\n\n$2');
+    }
+    const normalized = normalizeMarkdown(adjustedContent);
+  
     return (
+       <View style={{ maxWidth: '100%'}}>
       <Markdown
         style={{
           body: { color: '#333' },
@@ -407,11 +459,13 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
           link: { color: '#0066cc' },
           code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
           code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-          fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 }
+          fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+          paragraph: { marginBottom: 10 },
         }}
       >
-        {content}
+        {normalized}
       </Markdown>
+      </View>
     );
   }
 };
@@ -467,9 +521,6 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
                     item.isUser ? styles.userBubble : styles.botBubble
                   ]}
                 >
-                  {/* <Text style={item.isUser ? styles.userText : styles.botText}>
-                    {item.content}
-                  </Text> */}
                   {renderMessageContent(item.content, item.isUser)}
                   <Text 
                     style={[

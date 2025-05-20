@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,7 @@ import NotificationStyle from './notification.style';
 import { bufferToBase64Url } from '@/src/common/utils/file.service';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface SpecialtyData {
   id: number;
@@ -64,7 +65,7 @@ interface HistoryItem {
   description: string;
   doctorDataHistory: DoctorData;
   drugs: Drug[] | undefined;
-   files?: { type: string; data: number[] };
+  files?: { type: string; data: number[] };
 }
 
 const formatDate = (dateString: string) => {
@@ -78,8 +79,8 @@ const MedicalHistoryScreen = () => {
   const [loading, setLoading] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [imageUri, setImageUri] = useState<string | null>(null); 
-  const [fromDate, setFromDate] = useState(new Date());
- const [toDate, setToDate] = useState(new Date());
+  const [fromDate, setFromDate] = useState<Date | null>(null);
+  const [toDate, setToDate] = useState<Date | null>(null);
  const [showFromPicker, setShowFromPicker] = useState(false);
  const [showToPicker, setShowToPicker] = useState(false);
   
@@ -102,11 +103,13 @@ const MedicalHistoryScreen = () => {
 };
 
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     if (patientId) {
       fetchAllHistory();
     }
-  }, [patientId]);
+  }, [patientId])
+);
 
   const fetchAllHistory = async () => {
     if (!patientId) return;
@@ -137,31 +140,49 @@ const MedicalHistoryScreen = () => {
     }
   };
 
+  const checkAndFixFilterModel = (filter: FilterHistoryModel) => {
+   
+    if (filter.startDate) {
+      if (!filter.startDate.includes('T')) {
+        filter.startDate = filter.startDate + 'T00:00:00.000Z';
+      }
+    }
+    if (filter.endDate) {
+      if (!filter.endDate.includes('T')) {
+        filter.endDate = filter.endDate + 'T23:59:59.999Z';
+      }
+    }
+    return filter;
+  };
+
+  const formatDateForAPI = (date: Date) => {
+    
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}T00:00:00.000Z`; 
+  };
+
 
   const handleSearch = async () => {
     if (!patientId) return;
     
-    if (fromDate > toDate) {
+   if (!fromDate || !toDate) {
       Alert.alert('Lỗi', 'Ngày bắt đầu không thể lớn hơn ngày kết thúc!');
       return;
     }
-     const formatLocalDate = (date: Date) => {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-   const startDate = formatLocalDate(fromDate);
-  const endDate = formatLocalDate(toDate);
+    const startDate = formatDateForAPI(fromDate);
+    const endDate = formatDateForAPI(toDate);
+
     
     setLoading(true);
     try {
-      const filter = new FilterHistoryModel(
+      const filter =checkAndFixFilterModel(new FilterHistoryModel(
         patientId,
         undefined,
        startDate,
-      endDate
-      );
+       endDate
+      ));
       const res = await getFilteredHistories(filter);
       if (res.errCode === 0) {
         const normalized = (res.data || []).map((item: any) => ({
@@ -183,6 +204,8 @@ const MedicalHistoryScreen = () => {
       setLoading(false);
     }
   };
+
+  
 
 
   const renderEmptyComponent = () => (
@@ -272,10 +295,10 @@ const MedicalHistoryScreen = () => {
       </View>
       
       <View style={styles.filterContainer}>
-        <View style={styles.filterLabelContainer}>
+        {/* <View style={styles.filterLabelContainer}>
           <MaterialCommunityIcons  name="calendar-month" size={20} color={CommonColors.primary} />
           <Text style={styles.filterLabel}>Thời gian:</Text>
-        </View>
+        </View> */}
         
         <View style={styles.filterRow}>
           <View style={{ flex: 1, marginRight: 8 }}>
@@ -284,11 +307,11 @@ const MedicalHistoryScreen = () => {
               onPress={() => setShowFromPicker(true)}
                style={styles.dateInput}
             >
-              <Text>{fromDate.toLocaleDateString('vi-VN')}</Text>
+              <Text>{fromDate ? fromDate.toLocaleDateString('vi-VN') : 'mm/dd/yyyy'}</Text>
            </TouchableOpacity>
             {showFromPicker && (
               <DateTimePicker
-                value={fromDate}
+                 value={fromDate || new Date()}
                 mode="date"
                 display="default"
                  onChange={(event, selectedDate) => {
@@ -305,11 +328,11 @@ const MedicalHistoryScreen = () => {
                    onPress={() => setShowToPicker(true)}
                    style={styles.dateInput}
                 >
-                   <Text>{toDate.toLocaleDateString('vi-VN')}</Text>
+                  <Text>{toDate ? toDate.toLocaleDateString('vi-VN') : 'mm/dd/yyyy'}</Text>
                  </TouchableOpacity>
                  {showToPicker && (
                    <DateTimePicker
-                     value={toDate}
+                      value={toDate || new Date()}
                      mode="date"
                      display="default"
                      onChange={(event, selectedDate) => {

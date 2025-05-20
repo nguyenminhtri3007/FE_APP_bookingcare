@@ -1,18 +1,18 @@
 export class FilterHistoryModel {
   patientId?: number;
   doctorId?: number;
-  fromDate?: string;
-  toDate?: string;
+  startDate?: string;
+  endDate?: string;
 
   constructor(
     patientId?: number,
     doctorId?: number,
-    fromDate?: string,
-    toDate?: string
+    startDate?: string,
+    endDate?: string
   ) {
     this.patientId = patientId ?? undefined;
     this.doctorId = doctorId ?? undefined;
-    this.fromDate = fromDate ?? undefined;
-    this.toDate = toDate ?? undefined;
+    this.startDate = startDate ?? undefined;
+    this.endDate = endDate ?? undefined;
   }
 }

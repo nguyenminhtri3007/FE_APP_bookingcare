@@ -5,18 +5,21 @@ import { StyleSheet } from "react-native";
 const NotificationStyle = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: CommonColors.background || '#f5f5f5',
+        // backgroundColor: CommonColors.background || '#f5f5f5',
       },
       header: {
-        backgroundColor: CommonColors.primary || '#2196F3',
+        // backgroundColor: CommonColors.primary || '#2196F3',
         paddingVertical: 16,
-        paddingHorizontal: 20,
-        elevation: 4,
+        // paddingHorizontal: 20,
+        // elevation: 4,
+        marginTop:50,
+        
       },
       headerTitle: {
         fontSize: 18,
         fontFamily: Fonts.POPPINS_MEDIUM,
-        color: '#fff',
+        color: '#000000',
+        fontWeight:"800",
         textAlign: 'center',
       },
       filterContainer: {

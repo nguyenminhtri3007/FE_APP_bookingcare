@@ -8,27 +8,29 @@ const HeaderStyle = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: CommonColors.white,
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-        gap: 15
+        paddingHorizontal: 16,
+        paddingBottom: 8,
+        gap: 8
     },
     logo: {
         fontSize: 24,
         fontFamily: Fonts.POPPINS_BOLD,
         color: CommonColors.primary,
     },
-    searchBar: {
+    headerContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         flex: 1,
-        backgroundColor: CommonColors.background,
-        borderRadius: 5,
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between'
     },
-    searchTxt: {
-        color: CommonColors.gray
-    }
+    greeting: {
+        fontSize: 16,
+        fontWeight: "500",
+        color: CommonColors.primary,
+        marginLeft: 0,
+        position: 'relative',
+        left: -20,
+    },
 });
 
 export default HeaderStyle;
