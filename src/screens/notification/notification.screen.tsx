@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
-  Modal, 
+  Modal,
+  TextInput, 
 } from 'react-native';
 import { FilterHistoryModel } from '@/src/data/model/history.model';
 import { getFilteredHistories } from '@/src/data/management/history.management';
@@ -23,6 +24,8 @@ import { bufferToBase64Url } from '@/src/common/utils/file.service';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
+import { ReviewModel } from '@/src/data/model/review.model';
+import * as ReviewManagement from '@/src/data/management/review.management';
 
 interface SpecialtyData {
   id: number;
@@ -83,6 +86,12 @@ const MedicalHistoryScreen = () => {
   const [toDate, setToDate] = useState<Date | null>(null);
  const [showFromPicker, setShowFromPicker] = useState(false);
  const [showToPicker, setShowToPicker] = useState(false);
+ const [reviewModalVisible, setReviewModalVisible] = useState(false);
+ const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
+ const [rating, setRating] = useState(5);
+ const [comment, setComment] = useState('');
+ const [reviewedHistoryIds, setReviewedHistoryIds] = useState<number[]>([]);
+  const [backendReviewedHistoryIds, setBackendReviewedHistoryIds] = useState<number[]>([]);
   
   useEffect(() => {
     const fetchPatientId = async () => {
@@ -129,6 +138,21 @@ const MedicalHistoryScreen = () => {
           drugs: typeof item.drugs === 'string' ? JSON.parse(item.drugs) : item.drugs || [],
         }));
         setData(normalized);
+         if (normalized.length > 0 && patientId) {
+          const historyIds = normalized.map((h: HistoryItem) => h.id);
+          try {
+            const reviewRes = await ReviewManagement.getReviewedHistoriesByPatient(patientId, historyIds);
+            if (reviewRes.errCode === 0) {
+              setBackendReviewedHistoryIds(reviewRes.data || []);
+            } else {
+              console.error("Error fetching reviewed histories:", reviewRes.errMessage);
+              setBackendReviewedHistoryIds([]);
+            }
+          } catch (reviewError) {
+            console.error("Exception fetching reviewed histories:", reviewError);
+            setBackendReviewedHistoryIds([]); 
+          }
+        }
       } else {
         Alert.alert('Lỗi', 'Không lấy được dữ liệu!');
       }
@@ -215,6 +239,31 @@ const MedicalHistoryScreen = () => {
     </View>
   );
 
+   const openReviewModal = (item: HistoryItem) => {
+    setSelectedHistory(item);
+    setRating(5);
+    setComment('');
+    setReviewModalVisible(true);
+  };
+
+  const handleSubmitReview = async () => {
+    if (!selectedHistory || !patientId) return;
+    try {
+      const review = new ReviewModel(selectedHistory.id, patientId, rating, comment);
+      const res = await ReviewManagement.createReview(review);
+      if (res.errCode === 0) {
+        Alert.alert('Thành công', 'Đánh giá đã được gửi!');
+        
+        setReviewModalVisible(false);
+        fetchAllHistory();
+      } else {
+        Alert.alert('Lỗi', res.errMessage || 'Không gửi được đánh giá!');
+      }
+    } catch (error) {
+      Alert.alert('Lỗi', 'Không gửi được đánh giá!');
+    }
+  };
+
   const renderItem = ({ item, index }: { item: HistoryItem; index: number }) => (
     <View style={styles.cardContainer}>
       <View style={styles.cardHeader}>
@@ -276,6 +325,19 @@ const MedicalHistoryScreen = () => {
           <Feather name="eye" size={16} color={CommonColors.primary} />
           <Text style={styles.actionText}>Xem chi tiết</Text>
         </TouchableOpacity>
+
+         {/* {!reviewedHistoryIds.includes(item.id) && ( */}
+          {backendReviewedHistoryIds.includes(item.id) ? (
+         <View style={[styles.actionButton, { opacity: 0.4 }]}>
+         <Feather name="star" size={16} color="#999999" />
+        <Text style={[styles.actionText, { color: '#999999' }]}>Đã đánh giá</Text>
+          </View>
+           ) : (
+         <TouchableOpacity style={styles.actionButton} onPress={() => openReviewModal(item)}>
+        <Feather name="star" size={16} color="#FFD700" />
+        <Text style={styles.actionText}>Đánh giá</Text>
+     </TouchableOpacity>
+        )}
         
         <TouchableOpacity style={styles.actionButton}>
           <Feather  name="download" size={16} color={CommonColors.success} />
@@ -431,6 +493,47 @@ const MedicalHistoryScreen = () => {
     </View>
   </View>
 </Modal>
+
+
+<Modal visible={reviewModalVisible} transparent animationType="slide">
+  <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+    <View style={{ backgroundColor: '#fff', borderRadius: 10, padding: 20, width: '80%' }}>
+      <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 10 }}>Đánh giá bác sĩ</Text>
+      <Text>Chọn số sao:</Text>
+      <View style={{ flexDirection: 'row', marginVertical: 10 }}>
+        {[1,2,3,4,5].map(star => (
+          <TouchableOpacity key={star} onPress={() => setRating(star)}>
+            <Text style={{ fontSize: 28, color: star <= rating ? '#FFD700' : '#ccc' }}>★</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Text>Nhận xét:</Text>
+      <TextInput
+        value={comment}
+        onChangeText={setComment}
+        placeholder="Nhận xét của bạn"
+        style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8, marginVertical: 10 }}
+        multiline
+      />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 }}>
+  <TouchableOpacity
+    onPress={() => setReviewModalVisible(false)}
+    style={styles.reviewModalButtonCancel}
+  >
+    <Text style={styles.reviewModalButtonCancelText}>Hủy</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    onPress={handleSubmitReview}
+     style={styles.reviewModalButtonSubmit}
+  >
+    <Text style={styles.reviewModalButtonSubmitText}>Gửi đánh giá</Text>
+  </TouchableOpacity>
+</View>
+    </View>
+  </View>
+</Modal>
+
 
 </>
   );

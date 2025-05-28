@@ -58,7 +58,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
 
   useEffect(() => {
     if (visible) {
-      showWelcomeMessage();
+      startNewChat();
       loadSessionsInBackground();
     }
   }, [visible]);
@@ -318,28 +318,55 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
 
 
   const deleteSession = async (sessionIndex: number) => {
-    const updatedSessions = [...chatSessions];
-    updatedSessions.splice(sessionIndex, 1);
-    setChatSessions(updatedSessions);
-    
+     try {
+      const sessionToDelete = chatSessions[sessionIndex];
+      
+      if (userId) {
+        // Nếu user đã đăng nhập, gọi API để xóa chat history
+        const response = await fetch(`${appConfig.getDomain()}/delete-chat-history`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sessionId: sessionToDelete.id,
+            userId: userId
+          })
+        });
 
-    await AsyncStorage.setItem('ai_assistant_chat_sessions', JSON.stringify(updatedSessions));
-    
+        const result = await response.json();
+        if (result.errCode !== 0) {
+          throw new Error(result.errMessage || 'Không thể xóa lịch sử chat');
+        }
+      }
+
+      // Cập nhật state và local storage
+      const updatedSessions = [...chatSessions];
+      updatedSessions.splice(sessionIndex, 1);
+      setChatSessions(updatedSessions);
+      
+      if (!userId) {
+        // Nếu chưa đăng nhập, chỉ cần cập nhật local storage
+        await AsyncStorage.setItem('ai_assistant_chat_sessions', JSON.stringify(updatedSessions));
+      }
+
 
     if (sessionIndex === activeSessionIndex) {
-      if (updatedSessions.length > 0) {
-        const newIndex = 0;
-        setActiveSessionIndex(newIndex);
-        setSessionId(updatedSessions[newIndex].id);
-         await fetchChatHistory(updatedSessions[newIndex].id);
-        await AsyncStorage.setItem('ai_assistant_session_id', updatedSessions[newIndex].id);
-      } else {
-      
-        await startNewChat();
+        if (updatedSessions.length > 0) {
+          const newIndex = 0;
+          setActiveSessionIndex(newIndex);
+          setSessionId(updatedSessions[newIndex].id);
+          await fetchChatHistory(updatedSessions[newIndex].id);
+          await AsyncStorage.setItem('ai_assistant_session_id', updatedSessions[newIndex].id);
+        } else {
+          await startNewChat();
+        }
+      } else if (sessionIndex < activeSessionIndex) {
+        setActiveSessionIndex(activeSessionIndex - 1);
       }
-    } else if (sessionIndex < activeSessionIndex) {
-  
-      setActiveSessionIndex(activeSessionIndex - 1);
+    } catch (error) {
+      console.error('Lỗi khi xóa phiên chat:', error);
+      // Có thể hiển thị thông báo lỗi cho người dùng ở đây
     }
   };
 
@@ -434,40 +461,112 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
 
   
   
-  const renderMessageContent = (content: string, isUser: boolean) => {
+  // const renderMessageContent = (content: string, isUser: boolean) => {
+  // if (isUser) {
+  //   return <Text style={styles.userText}>{content}</Text>;
+  // } else {
+  //   let adjustedContent = content;
+  //   if (!adjustedContent.includes('\n\n')) {
+  //     adjustedContent = adjustedContent.replace(/^(.*?:)(.*)$/m, '$1\n\n$2');
+  //   }
+  //   const normalized = normalizeMarkdown(adjustedContent);
+  
+  //   return (
+  //      <View style={{ maxWidth: '100%'}}>
+  //     <Markdown
+  //       style={{
+  //         body: { color: '#333' },
+  //         text: { color: '#333' },
+  //         strong: { fontWeight: 'bold' },
+  //         em: { fontStyle: 'italic' },
+  //         heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+  //         heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  //         heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+  //         list_item: { marginVertical: 2 },
+  //         link: { color: '#0066cc' },
+  //         code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
+  //         code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+  //         fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+  //         paragraph: { marginBottom: 10 },
+  //       }}
+  //     >
+  //       {normalized}
+  //     </Markdown>
+  //     </View>
+  //   );
+  // }
+  const formatMarkdownResponse = (text: string) => {
+  let formatted = text;
+
+  // Thêm khoảng cách trước các tiêu đề số (như **1. Tiêu đề:**)
+  formatted = formatted.replace(/^(.*?)(\*\*\d+\.\s)/m, '$1\n\n$2');
+
+  // Đảm bảo các tiêu đề in đậm (như **Tiêu đề:**) có khoảng cách hợp lý
+  formatted = formatted.replace(/(\*\*[^*:]+:\*\*)/g, '\n$1');
+
+  // Loại bỏ xuống dòng thừa trước bullet points và giữ định dạng đúng
+  formatted = formatted.replace(/^\*\s+/gm, '* '); // Chỉ giữ * mà không thêm \n thừa
+
+  // Đảm bảo mỗi bullet point có khoảng cách hợp lý
+  formatted = formatted.replace(/(\n|\s)(\*\s)/g, '\n$2');
+
+  return formatted.trim(); // Loại bỏ khoảng trắng thừa ở đầu và cuối
+};
+
+const renderMessageContent = (content: string, isUser: boolean) => {
   if (isUser) {
     return <Text style={styles.userText}>{content}</Text>;
   } else {
     let adjustedContent = content;
-    if (!adjustedContent.includes('\n\n')) {
-      adjustedContent = adjustedContent.replace(/^(.*?:)(.*)$/m, '$1\n\n$2');
+    
+    if (content.startsWith("Dưới đây là thông tin")) {
+      const firstItemIndex = content.indexOf("**1.");
+      if (firstItemIndex > 0) {
+        const intro = content.substring(0, firstItemIndex);
+        const rest = content.substring(firstItemIndex);
+        adjustedContent = intro + "\n\n" + rest;
+      }
     }
-    const normalized = normalizeMarkdown(adjustedContent);
-  
+    
+    const formatted = formatMarkdownResponse(adjustedContent);
+    
     return (
-       <View style={{ maxWidth: '100%'}}>
-      <Markdown
-        style={{
-          body: { color: '#333' },
-          text: { color: '#333' },
-          strong: { fontWeight: 'bold' },
-          em: { fontStyle: 'italic' },
-          heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
-          heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-          heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-          list_item: { marginVertical: 2 },
-          link: { color: '#0066cc' },
-          code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
-          code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-          fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-          paragraph: { marginBottom: 10 },
-        }}
-      >
-        {normalized}
-      </Markdown>
+      <View style={{ maxWidth: '100%'}}>
+        <Markdown
+          style={{
+            body: { color: '#333' },
+            text: { color: '#333' },
+            strong: { fontWeight: 'bold' },
+            em: { fontStyle: 'italic' },
+            heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+            heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+            heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+            list_item: { 
+              marginVertical: 2,
+              marginTop: 8,
+              paddingLeft: 8 
+            },
+            link: { color: '#0066cc' },
+            code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
+            code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+            fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+            paragraph: { 
+              marginBottom: 10,
+              marginTop: 4 
+            },
+            bullet_list: { 
+              marginLeft: 8, 
+              marginTop: 4,
+              marginBottom: 4
+            },
+          }}
+        >
+          {formatted}
+        </Markdown>
       </View>
     );
   }
+
 };
 
   return (

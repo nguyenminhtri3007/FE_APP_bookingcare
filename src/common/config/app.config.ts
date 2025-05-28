@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class AppConfig {
     private domain = "http://192.168.42.6:8080/api";
-    private preImage = "http://192.168.22.17:8080/api";
+    private preImage = "http://192.168.42.6:8080/api";
 
     constructor() { }
 

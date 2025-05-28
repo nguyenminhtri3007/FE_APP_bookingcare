@@ -5,13 +5,9 @@ import { StyleSheet } from "react-native";
 const NotificationStyle = StyleSheet.create({
     safeArea: {
         flex: 1,
-        // backgroundColor: CommonColors.background || '#f5f5f5',
       },
       header: {
-        // backgroundColor: CommonColors.primary || '#2196F3',
         paddingVertical: 16,
-        // paddingHorizontal: 20,
-        // elevation: 4,
         marginTop:50,
         
       },
@@ -251,6 +247,30 @@ const NotificationStyle = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 8,
   },
+  reviewModalButtonCancel:{
+    flex: 1,
+      backgroundColor: '#E0E0E0',
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginRight: 8,
+  },
+  reviewModalButtonCancelText:{
+    color: '#333',
+    fontWeight: '600'
+  },
+  reviewModalButtonSubmit: {
+flex: 1,
+      backgroundColor: '#007BFF', 
+      paddingVertical: 10,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginLeft: 8,
+  },
+  reviewModalButtonSubmitText: {
+    color: '#fff',
+    fontWeight: '600'
+  }
 });
 
 export default NotificationStyle;

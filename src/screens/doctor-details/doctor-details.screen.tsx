@@ -8,6 +8,7 @@ import Markdown from "react-native-markdown-display";
 import moment from "moment";
 import "moment/locale/vi";
 import doctorDetailStyle from "./doctor-details.style";
+import * as ReviewManagement from '@/src/data/management/review.management';
 
 
 moment.locale("vi");
@@ -22,6 +23,7 @@ const DoctorDetailComponent = () => {
   const [selectedDate, setSelectedDate] = useState<string>(moment().startOf("day").valueOf().toString());
   const [extraInfo, setExtraInfo] = useState<any>(null);
   const [showPriceDetail, setShowPriceDetail] = useState<boolean>(false);
+  const [reviews, setReviews] = useState<any[]>([]);
   const router = useRouter();
 
   const selectedDateMoment = moment(Number(selectedDate));
@@ -92,6 +94,14 @@ const DoctorDetailComponent = () => {
     };
     fetchSchedule();
   }, [doctorId, selectedDate]);
+
+   useEffect(() => {
+    if (doctorId) {
+      ReviewManagement.getDoctorReviews(doctorId).then(res => {
+        if (res.errCode === 0) setReviews(res.data);
+      });
+    }
+  }, [doctorId]);
 
   
   const handlePressTimeSlot = (item: any) => {   
@@ -196,6 +206,124 @@ const DoctorDetailComponent = () => {
           <Markdown>{doctorDetail.Markdown.contentMarkdown}</Markdown>
         </View>
       )}
+            <View style={styles.detailSection}>
+           <Text style={{ fontWeight: 'bold', fontSize: 16, marginTop: 20 }}>Đánh giá của bệnh nhân sau khi khám</Text>
+           {reviews.length === 0 ? (
+          <Text>Chưa có đánh giá nào</Text>
+           ) : (
+          reviews.map((review, idx) => {
+           const fullName = `${review.patientReviewData?.lastName || ''} ${review.patientReviewData?.firstName || ''}`;
+           const date = review.historyReviewData?.createdAt
+          ? moment(review.historyReviewData.createdAt).format('DD/MM/YYYY')
+          : '';
+        return (
+              <View key={idx} style={{ 
+                marginVertical: 8, 
+                padding: 15, 
+                backgroundColor: '#fff', 
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#e9ecef',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 3
+              }}>
+            <View style={{ 
+              flexDirection: 'row', 
+             justifyContent: 'space-between', 
+             alignItems: 'flex-start',
+             marginBottom: 12
+           }}>
+             <View style={{ flex: 1, marginRight: 10 }}>
+            <View style={{ 
+          flexDirection: 'row', 
+          alignItems: 'center', 
+          flexWrap: 'wrap'
+          }}>
+          <Text style={{ 
+            fontWeight: '600', 
+            fontSize: 16, 
+            color: '#333',
+            marginRight: 12
+          }}>
+            {fullName || 'Bệnh nhân ẩn danh'}
+          </Text>
+          {date && (
+            <View style={{ 
+              flexDirection: 'row', 
+              alignItems: 'center'
+            }}>
+              <View style={{
+                width: 18,
+                height: 18,
+                borderRadius: 9,
+                backgroundColor: '#45B7D1',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 6
+              }}>
+                <Text style={{ 
+                  color: 'white', 
+                  fontSize: 12, 
+                  fontWeight: 'bold' 
+                }}>
+                  ✓
+                </Text>
+              </View>
+              <Text style={{ 
+                fontSize: 13, 
+                color: '#666' 
+              }}>
+                đã khám ngày {date}
+              </Text>
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={{ 
+        flexDirection: 'row', 
+        alignItems: 'center' 
+      }}>
+        <Text style={{ 
+          color: '#FFD700', 
+          fontSize: 18,
+          marginRight: 6
+        }}>
+          {'★'.repeat(review.rating)}
+        </Text>
+        <Text style={{ 
+          fontSize: 13, 
+          color: '#666', 
+          fontWeight: '500' 
+        }}>
+          ({review.rating}/5)
+        </Text>
+      </View>
+    </View>
+    {review.comment && (
+      <View style={{ 
+        backgroundColor: '#f8f9fa', 
+        padding: 15, 
+        borderRadius: 8, 
+        borderLeftWidth: 4, 
+        borderLeftColor: '#45B7D1',
+        marginTop: 8
+      }}>
+        <Text style={{ 
+          fontSize: 15, 
+          lineHeight: 22, 
+          color: '#555' 
+        }}>
+          {review.comment}
+        </Text>
+      </View>
+    )}
+  </View>
+);
+    })
+  )}
+</View>
     </ScrollView>
   );
 };
