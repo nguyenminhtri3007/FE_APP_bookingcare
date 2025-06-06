@@ -73,3 +73,16 @@ export const getAllDoctors = async () => {
     throw error;
   }
 };
+
+export const getTotalAppointmentsByDoctorId = async (doctorId: number) => {
+    try {
+        const domain = new AppConfig().getDomain();
+        const response = await ServiceCore.GET(
+            `${domain}`,
+            `doctor-total-appointments?doctorId=${doctorId}`
+        );
+        return response;
+    } catch (error) {
+        throw error;
+    }
+};

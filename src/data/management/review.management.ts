@@ -26,3 +26,12 @@ export const getReviewedHistoriesByPatient = async (patientId: number, historyId
         throw error;
     }
 } 
+
+export const getDoctorReviewStats = async (doctorId: number) => {
+    try {
+        const result = await ReviewService.getDoctorReviewStats(doctorId);
+        return result;
+    } catch (error) {
+        throw error;
+    }
+} 

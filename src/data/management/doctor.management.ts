@@ -56,3 +56,12 @@ export const getAllDoctors = async () => {
     throw error;
   }
 };
+
+export const getTotalAppointmentsByDoctorId = async (doctorId: number) => {
+    try {
+        const result = await DoctorService.getTotalAppointmentsByDoctorId(doctorId);
+        return result;
+    } catch (error) {
+        throw error;
+    }
+};

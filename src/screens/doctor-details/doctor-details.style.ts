@@ -98,6 +98,80 @@ const doctorDetailStyle = StyleSheet.create ({
     color: "#3498db",
     marginTop: 4,
   },
+  //
+  statsSectionVertical: {
+    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 8, // Khoảng cách từ ảnh xuống
+    width: 110, 
+  },
+  statItemVertical: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+    paddingVertical: 1,
+  },
+  statValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+    marginRight: 4,
+  },
+  starIcon: {
+    color: '#FFD700',
+    fontSize: 13,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#555',
+    flex: 1,
+  },
+  // Thêm styles riêng cho từng loại thống kê
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  reviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  appointmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+   starsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    justifyContent: 'center',
+  },
+  // Styles cho ngôi sao
+  starFilled: {
+    color: '#FFD700',
+    fontSize: 14,
+    marginHorizontal: 1,
+  },
+  starEmpty: {
+    color: '#E0E0E0',
+    fontSize: 14,
+    marginHorizontal: 1,
+  },
+  halfStarContainer: {
+    position: 'relative',
+    marginHorizontal: 1,
+  },
+  halfStarOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '50%',
+    overflow: 'hidden',
+  },
 });
 
 export default doctorDetailStyle;

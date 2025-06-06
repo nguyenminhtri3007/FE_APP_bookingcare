@@ -9,9 +9,53 @@ import moment from "moment";
 import "moment/locale/vi";
 import doctorDetailStyle from "./doctor-details.style";
 import * as ReviewManagement from '@/src/data/management/review.management';
+import * as DoctorManagement from "@/src/data/management/doctor.management";
 
 
 moment.locale("vi");
+
+
+const formatKilo = (num: number): string => {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(".0", "") + "k";
+  }
+  return num.toString();
+};
+
+const renderStars = (rating: number) => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 !== 0;
+  
+  // Thêm các ngôi sao đầy
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(
+      <Text key={`full-${i}`} style={styles.starFilled}>★</Text>
+    );
+  }
+  
+  // Thêm ngôi sao nửa nếu có
+  if (hasHalfStar && fullStars < 5) {
+    stars.push(
+      <View key="half-star" style={styles.halfStarContainer}>
+        <Text style={styles.starEmpty}>★</Text>
+        <View style={styles.halfStarOverlay}>
+          <Text style={styles.starFilled}>★</Text>
+        </View>
+      </View>
+    );
+  }
+  
+  // Thêm các ngôi sao rỗng còn lại
+  const emptyStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(
+      <Text key={`empty-${i}`} style={styles.starEmpty}>★</Text>
+    );
+  }
+  
+  return stars;
+};
 
 const DoctorDetailComponent = () => {
   const { id } = useLocalSearchParams();
@@ -24,6 +68,8 @@ const DoctorDetailComponent = () => {
   const [extraInfo, setExtraInfo] = useState<any>(null);
   const [showPriceDetail, setShowPriceDetail] = useState<boolean>(false);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewStats, setReviewStats] = useState<{ totalReviews: number; averageRating: number } | null>(null);
+  const [totalAppointments, setTotalAppointments] = useState<number | null>(null);
   const router = useRouter();
 
   const selectedDateMoment = moment(Number(selectedDate));
@@ -75,6 +121,22 @@ const DoctorDetailComponent = () => {
 
     fetchDoctorDetail();
     fetchExtraInfo();
+  }, [doctorId]);
+
+   useEffect(() => {
+    if (doctorId) {
+      ReviewManagement.getDoctorReviewStats(doctorId).then(res => {
+        if (res && res.errCode === 0 && res.data) {
+          setReviewStats(res.data);
+        }
+      }).catch(error => console.error("Lỗi khi lấy thống kê đánh giá:", error));
+
+      DoctorManagement.getTotalAppointmentsByDoctorId(doctorId).then(res => {
+        if (res && res.errCode === 0 && res.data) {
+          setTotalAppointments(res.data.totalAppointments);
+        }
+      }).catch(error => console.error("Lỗi khi lấy tổng số lượt khám:", error));
+    }
   }, [doctorId]);
 
   useEffect(() => {
@@ -133,19 +195,60 @@ const DoctorDetailComponent = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.introSection}>
-        {doctorDetail.image && (
-          <Image
-            source={{ uri: doctorDetail.image }}
-            style={styles.avatar}
-            resizeMode="cover"
-          />
+<View style={styles.introSection}>
+  <View style={{position: 'relative', marginRight: 16, alignItems: 'center',}}>
+    {doctorDetail.image && (
+      <Image
+        source={{ uri: doctorDetail.image }}
+        style={styles.avatar}
+        resizeMode="cover"
+      />
+    )}
+    
+    {(reviewStats || totalAppointments !== null) && (
+      <View style={styles.statsSectionVertical}>
+        {reviewStats && (
+          <>
+                  <View style={styles.ratingRow}>
+                    <Text style={styles.statValue}>
+                      {reviewStats.averageRating.toFixed(1)}
+                    </Text>
+                 
+                
+                  <View style={styles.starsRow}>
+                    {renderStars(reviewStats.averageRating)}
+                  </View>
+                   </View>
+                    
+            <View style={styles.reviewRow}>
+              <Text style={styles.statValue}>
+                {formatKilo(reviewStats.totalReviews)}
+              </Text>
+              <Text style={styles.statLabel}> Đánh giá</Text>
+            </View>
+          </>
         )}
-        <View style={styles.infoText}>
-          <Text style={styles.fullName}>{fullName}</Text>
-          <Text style={styles.description}>{doctorDetail?.Markdown?.description || ""}</Text>
-        </View>
+         
+        {totalAppointments !== null && (
+          <View style={styles.appointmentRow}>
+            <Text style={styles.statValue}>
+              {formatKilo(totalAppointments)}
+            </Text>
+            <Text style={styles.statLabel}> Lượt khám</Text>
+          </View>
+        )}
       </View>
+    )}
+  </View>
+  
+  <View style={styles.infoText}>
+    <Text style={styles.fullName}>{fullName}</Text>
+    <Text style={styles.description}>{doctorDetail?.Markdown?.description || ""}</Text>
+  </View>
+</View>
+
+         
+
       <View style={styles.scheduleSection}>
         <View style={styles.scheduleHeaderRow}>
           <Text style={styles.scheduleTitle}>🗓 LỊCH KHÁM</Text>

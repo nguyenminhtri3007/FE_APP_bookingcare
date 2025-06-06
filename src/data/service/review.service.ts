@@ -42,3 +42,16 @@ export const getReviewedHistoriesByPatient = async (patientId: number, historyId
         throw error;
     }
 } 
+
+export const getDoctorReviewStats = async (doctorId: number) => {
+    try {
+        const domain = new AppConfig().getDomain();
+        const response = await ServiceCore.GET(
+            `${domain}`,
+            `doctor-review-stats?doctorId=${doctorId}`
+        );
+        return response;
+    } catch (error) {
+        throw error;
+    }
+} 
