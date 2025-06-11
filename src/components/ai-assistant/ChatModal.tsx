@@ -444,130 +444,167 @@ const ChatModal: React.FC<ChatModalProps> = ({ visible, onClose }) => {
     );
   };
 
-  function normalizeMarkdown(md: string): string {
-  let result = md.replace(/\\n/g, '\n');
-  result = result.replace(/\\"/g, '"');
-  result = result.replace(/\\'/g, "'");
+//   function normalizeMarkdown(md: string): string {
+//   let result = md.replace(/\\n/g, '\n');
+//   result = result.replace(/\\"/g, '"');
+//   result = result.replace(/\\'/g, "'");
   
-  result = result.replace(/([*\-]\s.+)\n(?![*\-])/g, '$1\n\n');
-  result = result.replace(/([*\-])\s+/g, '$1 ');
-  result = result.replace(/\n{3,}/g, '\n\n');
-  result = result.replace(/:\n/g, ': \n');
-  result = result.replace(/(\n[^\n*\-].+)\n(?=[^\n*\-])/g, '$1\n\n');
-  result = result.replace(/:\s+/g, ': ');
-  result = result.replace(/(\* .*?)(?=\n\*|\n[^\*]|$)/g, '$1\n');
-  return result;
+//   result = result.replace(/([*\-]\s.+)\n(?![*\-])/g, '$1\n\n');
+//   result = result.replace(/([*\-])\s+/g, '$1 ');
+//   result = result.replace(/\n{3,}/g, '\n\n');
+//   result = result.replace(/:\n/g, ': \n');
+//   result = result.replace(/(\n[^\n*\-].+)\n(?=[^\n*\-])/g, '$1\n\n');
+//   result = result.replace(/:\s+/g, ': ');
+//   result = result.replace(/(\* .*?)(?=\n\*|\n[^\*]|$)/g, '$1\n');
+//   return result;
+// }
+
+  
+  
+//   // const renderMessageContent = (content: string, isUser: boolean) => {
+//   // if (isUser) {
+//   //   return <Text style={styles.userText}>{content}</Text>;
+//   // } else {
+//   //   let adjustedContent = content;
+//   //   if (!adjustedContent.includes('\n\n')) {
+//   //     adjustedContent = adjustedContent.replace(/^(.*?:)(.*)$/m, '$1\n\n$2');
+//   //   }
+//   //   const normalized = normalizeMarkdown(adjustedContent);
+  
+//   //   return (
+//   //      <View style={{ maxWidth: '100%'}}>
+//   //     <Markdown
+//   //       style={{
+//   //         body: { color: '#333' },
+//   //         text: { color: '#333' },
+//   //         strong: { fontWeight: 'bold' },
+//   //         em: { fontStyle: 'italic' },
+//   //         heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+//   //         heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+//   //         heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+//   //         list_item: { marginVertical: 2 },
+//   //         link: { color: '#0066cc' },
+//   //         code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
+//   //         code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+//   //         fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+//   //         paragraph: { marginBottom: 10 },
+//   //       }}
+//   //     >
+//   //       {normalized}
+//   //     </Markdown>
+//   //     </View>
+//   //   );
+//   // }
+//   const formatMarkdownResponse = (text: string) => {
+//   let formatted = text;
+
+//   // Thêm khoảng cách trước các tiêu đề số (như **1. Tiêu đề:**)
+//   formatted = formatted.replace(/^(.*?)(\*\*\d+\.\s)/m, '$1\n\n$2');
+
+//   // Đảm bảo các tiêu đề in đậm (như **Tiêu đề:**) có khoảng cách hợp lý
+//   formatted = formatted.replace(/(\*\*[^*:]+:\*\*)/g, '\n$1');
+
+//   // Loại bỏ xuống dòng thừa trước bullet points và giữ định dạng đúng
+//   formatted = formatted.replace(/^\*\s+/gm, '* '); // Chỉ giữ * mà không thêm \n thừa
+
+//   // Đảm bảo mỗi bullet point có khoảng cách hợp lý
+//   formatted = formatted.replace(/(\n|\s)(\*\s)/g, '\n$2');
+
+//   return formatted.trim(); // Loại bỏ khoảng trắng thừa ở đầu và cuối
+// };
+
+// const renderMessageContent = (content: string, isUser: boolean) => {
+//   if (isUser) {
+//     return <Text style={styles.userText}>{content}</Text>;
+//   } else {
+//     let adjustedContent = content;
+    
+//     if (content.startsWith("Dưới đây là thông tin")) {
+//       const firstItemIndex = content.indexOf("**1.");
+//       if (firstItemIndex > 0) {
+//         const intro = content.substring(0, firstItemIndex);
+//         const rest = content.substring(firstItemIndex);
+//         adjustedContent = intro + "\n\n" + rest;
+//       }
+//     }
+    
+//     const formatted = formatMarkdownResponse(adjustedContent);
+    
+//     return (
+//       <View style={{ maxWidth: '100%'}}>
+//         <Markdown
+//           style={{
+//             body: { color: '#333' },
+//             text: { color: '#333' },
+//             strong: { fontWeight: 'bold' },
+//             em: { fontStyle: 'italic' },
+//             heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
+//             heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+//             heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
+//             list_item: { 
+//               marginVertical: 2,
+//               marginTop: 8,
+//               paddingLeft: 8 
+//             },
+//             link: { color: '#0066cc' },
+//             code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
+//             code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+//             fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
+//             paragraph: { 
+//               marginBottom: 10,
+//               marginTop: 4 
+//             },
+//             bullet_list: { 
+//               marginLeft: 8, 
+//               marginTop: 4,
+//               marginBottom: 4
+//             },
+//           }}
+//         >
+//           {formatted}
+//         </Markdown>
+//       </View>
+//     );
+//   }
+
+// };
+
+function stripMarkdown(text: string): string {
+  // Loại bỏ **bold**
+  let result = text.replace(/\*\*(.*?)\*\*/g, '$1');
+  // Loại bỏ *italic* hoặc * đầu dòng
+  result = result.replace(/(^|\s)\*(\s?)/g, '$1');
+  // Loại bỏ các dấu - hoặc + đầu dòng
+  result = result.replace(/^[\-\+]\s+/gm, '');
+  // Loại bỏ các dấu số thứ tự markdown (1. 2. ...)
+  result = result.replace(/^\d+\.\s+/gm, '');
+  // Loại bỏ các dấu ` (code inline)
+  result = result.replace(/`([^`]*)`/g, '$1');
+  // Loại bỏ các dấu > (blockquote)
+  result = result.replace(/^>\s?/gm, '');
+  // Loại bỏ các khoảng trắng thừa
+  result = result.replace(/[ ]{2,}/g, ' ');
+  return result.trim();
 }
 
-  
-  
-  // const renderMessageContent = (content: string, isUser: boolean) => {
-  // if (isUser) {
-  //   return <Text style={styles.userText}>{content}</Text>;
-  // } else {
-  //   let adjustedContent = content;
-  //   if (!adjustedContent.includes('\n\n')) {
-  //     adjustedContent = adjustedContent.replace(/^(.*?:)(.*)$/m, '$1\n\n$2');
-  //   }
-  //   const normalized = normalizeMarkdown(adjustedContent);
-  
-  //   return (
-  //      <View style={{ maxWidth: '100%'}}>
-  //     <Markdown
-  //       style={{
-  //         body: { color: '#333' },
-  //         text: { color: '#333' },
-  //         strong: { fontWeight: 'bold' },
-  //         em: { fontStyle: 'italic' },
-  //         heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
-  //         heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-  //         heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-  //         list_item: { marginVertical: 2 },
-  //         link: { color: '#0066cc' },
-  //         code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
-  //         code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-  //         fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-  //         paragraph: { marginBottom: 10 },
-  //       }}
-  //     >
-  //       {normalized}
-  //     </Markdown>
-  //     </View>
-  //   );
-  // }
-  const formatMarkdownResponse = (text: string) => {
-  let formatted = text;
-
-  // Thêm khoảng cách trước các tiêu đề số (như **1. Tiêu đề:**)
-  formatted = formatted.replace(/^(.*?)(\*\*\d+\.\s)/m, '$1\n\n$2');
-
-  // Đảm bảo các tiêu đề in đậm (như **Tiêu đề:**) có khoảng cách hợp lý
-  formatted = formatted.replace(/(\*\*[^*:]+:\*\*)/g, '\n$1');
-
-  // Loại bỏ xuống dòng thừa trước bullet points và giữ định dạng đúng
-  formatted = formatted.replace(/^\*\s+/gm, '* '); // Chỉ giữ * mà không thêm \n thừa
-
-  // Đảm bảo mỗi bullet point có khoảng cách hợp lý
-  formatted = formatted.replace(/(\n|\s)(\*\s)/g, '\n$2');
-
-  return formatted.trim(); // Loại bỏ khoảng trắng thừa ở đầu và cuối
-};
-
 const renderMessageContent = (content: string, isUser: boolean) => {
-  if (isUser) {
-    return <Text style={styles.userText}>{content}</Text>;
-  } else {
-    let adjustedContent = content;
-    
-    if (content.startsWith("Dưới đây là thông tin")) {
-      const firstItemIndex = content.indexOf("**1.");
-      if (firstItemIndex > 0) {
-        const intro = content.substring(0, firstItemIndex);
-        const rest = content.substring(firstItemIndex);
-        adjustedContent = intro + "\n\n" + rest;
-      }
+    if (isUser) {
+      return <Text style={styles.userText}>{content}</Text>;
+    } else {
+    const plainText = stripMarkdown(content);
+    const paragraphs = plainText.split(/\n{2,}/g);
+      return (
+        <View style={{ maxWidth: '100%' }}>
+          {paragraphs.map((para, idx) => (
+            <Text key={idx} style={styles.botText}>
+              {para.trim()}
+              {idx < paragraphs.length - 1 ? '\n' : ''}
+            </Text>
+          ))}
+        </View>
+      );
     }
-    
-    const formatted = formatMarkdownResponse(adjustedContent);
-    
-    return (
-      <View style={{ maxWidth: '100%'}}>
-        <Markdown
-          style={{
-            body: { color: '#333' },
-            text: { color: '#333' },
-            strong: { fontWeight: 'bold' },
-            em: { fontStyle: 'italic' },
-            heading1: { fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
-            heading2: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
-            heading3: { fontSize: 16, fontWeight: 'bold', marginBottom: 4 },
-            list_item: { 
-              marginVertical: 2,
-              marginTop: 8,
-              paddingLeft: 8 
-            },
-            link: { color: '#0066cc' },
-            code_inline: { backgroundColor: '#f0f0f0', padding: 2, borderRadius: 4 },
-            code_block: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-            fence: { backgroundColor: '#f0f0f0', padding: 8, borderRadius: 4 },
-            paragraph: { 
-              marginBottom: 10,
-              marginTop: 4 
-            },
-            bullet_list: { 
-              marginLeft: 8, 
-              marginTop: 4,
-              marginBottom: 4
-            },
-          }}
-        >
-          {formatted}
-        </Markdown>
-      </View>
-    );
-  }
-
-};
+  };
 
   return (
     <Modal
@@ -750,6 +787,10 @@ const styles = StyleSheet.create({
   },
   botText: {
     color: '#333',
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'left',
+    marginBottom: 6,
   },
   timestamp: {
     fontSize: 10,

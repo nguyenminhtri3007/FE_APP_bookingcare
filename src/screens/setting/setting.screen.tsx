@@ -7,13 +7,16 @@ import { AppConfig } from '@/src/common/config/app.config';
 import { CommonColors } from '@/src/common/resource/colors';
 import { Buffer } from 'buffer';
 import { Feather } from '@expo/vector-icons';
+import store from "@/src/data/store/store.config";
+import * as UserActions from "@/src/data/store/actions/user.actions";
 
 const SettingScreen = () => {
   const [profile, setProfile] = useState<any | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const router = useRouter();
-  
+  const userStateStore = store.getState().loggedUser;
+
   useFocusEffect(useCallback(() => {
     fetchUserLogged();
   }, []));
@@ -39,6 +42,11 @@ const SettingScreen = () => {
 
 
   const fetchUserLogged = async () => {
+    if(userStateStore.isLogged === false){
+      setLoading(false)
+      return;
+    }
+
     setLoading(true);
     setImageError(false);
     
@@ -107,6 +115,7 @@ const SettingScreen = () => {
       // Xóa tất cả dữ liệu đã lưu
       const appConfig = new AppConfig();
       await appConfig.clear();
+      store.dispatch(UserActions.resetStore());
       router.replace("/(routes)/sign-in");
     } catch (error) {
       console.error("Lỗi đăng xuất:", error);
@@ -195,10 +204,18 @@ const SettingScreen = () => {
         </View>
       )}
 
-            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}
-                  activeOpacity={0.7} >
-              <Text style={styles.logoutText}>Đăng Xuất</Text>
-            </TouchableOpacity>
+      {userStateStore.isLogged ? (
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}
+              activeOpacity={0.7} >
+          <Text style={styles.logoutText}>Đăng Xuất</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={styles.logoutButton} onPress={() => router.navigate('/(routes)/sign-in')}
+              activeOpacity={0.7} >
+          <Text style={styles.logoutText}>Đăng nhập</Text>
+        </TouchableOpacity>
+      )}
+
     </ScrollView>
   );
 };

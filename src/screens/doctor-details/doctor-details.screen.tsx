@@ -10,7 +10,8 @@ import "moment/locale/vi";
 import doctorDetailStyle from "./doctor-details.style";
 import * as ReviewManagement from '@/src/data/management/review.management';
 import * as DoctorManagement from "@/src/data/management/doctor.management";
-
+import store from "@/src/data/store/store.config";
+import Toast from "react-native-toast-message";
 
 moment.locale("vi");
 
@@ -71,6 +72,7 @@ const DoctorDetailComponent = () => {
   const [reviewStats, setReviewStats] = useState<{ totalReviews: number; averageRating: number } | null>(null);
   const [totalAppointments, setTotalAppointments] = useState<number | null>(null);
   const router = useRouter();
+  const userStateStore = store.getState().loggedUser;
 
   const selectedDateMoment = moment(Number(selectedDate));
   const isToday = selectedDateMoment.isSame(moment(), 'day');
@@ -166,7 +168,19 @@ const DoctorDetailComponent = () => {
   }, [doctorId]);
 
   
-  const handlePressTimeSlot = (item: any) => {   
+  const handlePressTimeSlot = (item: any) => {  
+    if(userStateStore.isLogged === false){
+      Toast.show({
+       type: 'info',
+       text1: 'Vui lòng đăng nhập để đạt trải nghiệm tốt hơn.',
+       position: 'top',
+       visibilityTime: 3000,
+     });
+     setTimeout(() => {
+       router.navigate('/(routes)/sign-in');
+     }, 3000);
+     return;
+    } 
     router.navigate({
       pathname: "/(routes)/booking-care",
       params: {

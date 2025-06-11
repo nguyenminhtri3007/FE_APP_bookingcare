@@ -18,6 +18,9 @@ import { AppConfig } from "@/src/common/config/app.config";
 import { UserModel } from "@/src/data/model/user.model";
 import { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import store from '@/src/data/store/store.config';
+import * as UserActions from '@/src/data/store/actions/user.actions';
+import Toast from "react-native-toast-message";
 
 
 const signInform = Yup.object().shape({
@@ -49,7 +52,8 @@ const SignInScreen = () => {
             // const userInfo = new UserModel().convertObj(response?.info);
             // await new AppConfig().setAccessToken(response.access_token);
             // await new AppConfig().setRefreshToken(response.refresh_token);
-            await new AppConfig().setUserId(response.user.id);           
+            await new AppConfig().setUserId(response.user.id);  
+            store.dispatch(UserActions.saveLoggedUser(response.user));         
             router.dismissAll();
             router.push("/(tabs)");
         } catch (error: any) {
@@ -59,6 +63,13 @@ const SignInScreen = () => {
             if (status === HttpCode.BAD_REQUEST) {
                 if (message?.includes('Thông tin đăng nhập không chính xác')) {
                     setErrors({ email: FormValidate.INVALID_INFO });
+                     Toast.show({
+                    type: 'error',
+                    text1: 'Đăng nhập thất bại',
+                    text2: 'Email hoặc mật khẩu không chính xác',
+                    position: 'top',
+                    visibilityTime: 3000,
+                  });
                 }
             }
         }

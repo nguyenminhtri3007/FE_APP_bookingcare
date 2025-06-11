@@ -36,11 +36,9 @@ const WelcomeScreen = (props: Props) => {
                                 <Text style={styles.signInTxt}>
                                     Bạn đã có tài khoản?
                                 </Text>
-                                <Link href={Routes.SIGN_UP} asChild>
-                                    <TouchableOpacity>
-                                        <Text style={styles.signInTxtSpan}>Đăng ký</Text>
-                                    </TouchableOpacity>
-                                </Link>
+                                <TouchableOpacity onPress={() => router.navigate('/(tabs)')}>
+                                    <Text style={styles.signInTxtSpan}>Trải nghiệm</Text>
+                                </TouchableOpacity>
                             </View>
                         </View>
                     </LinearGradient>

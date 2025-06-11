@@ -26,6 +26,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
 import { ReviewModel } from '@/src/data/model/review.model';
 import * as ReviewManagement from '@/src/data/management/review.management';
+import store from '@/src/data/store/store.config';
+import * as UserActions from "@/src/data/store/actions/user.actions";
 
 interface SpecialtyData {
   id: number;
@@ -84,16 +86,21 @@ const MedicalHistoryScreen = () => {
   const [imageUri, setImageUri] = useState<string | null>(null); 
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
- const [showFromPicker, setShowFromPicker] = useState(false);
- const [showToPicker, setShowToPicker] = useState(false);
- const [reviewModalVisible, setReviewModalVisible] = useState(false);
- const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
- const [rating, setRating] = useState(5);
- const [comment, setComment] = useState('');
- const [reviewedHistoryIds, setReviewedHistoryIds] = useState<number[]>([]);
+  const [showFromPicker, setShowFromPicker] = useState(false);
+  const [showToPicker, setShowToPicker] = useState(false);
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState<HistoryItem | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [reviewedHistoryIds, setReviewedHistoryIds] = useState<number[]>([]);
   const [backendReviewedHistoryIds, setBackendReviewedHistoryIds] = useState<number[]>([]);
-  
+  const userStateStore = store.getState().loggedUser;
+
   useEffect(() => {
+    if(userStateStore.isLogged === false){
+      setLoading(false);
+      return;
+    }
     const fetchPatientId = async () => {
       const userId = await new AppConfig().getUserId(); 
       setPatientId(userId); 
@@ -113,12 +120,12 @@ const MedicalHistoryScreen = () => {
 
 
   useFocusEffect(
-  useCallback(() => {
-    if (patientId) {
-      fetchAllHistory();
-    }
-  }, [patientId])
-);
+    useCallback(() => {
+      if (patientId) {
+        fetchAllHistory();
+      }
+    }, [patientId])
+  );
 
   const fetchAllHistory = async () => {
     if (!patientId) return;

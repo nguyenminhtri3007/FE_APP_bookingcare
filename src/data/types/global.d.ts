@@ -67,3 +67,8 @@ type ProductPaginate = {
     products: ProductModel[];
     paginate: PaginateModel;
 }
+
+type ActionState = {
+    type: string;
+    data?: any;
+}

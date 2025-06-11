@@ -1,6 +1,7 @@
 import { toastConfig } from '@/src/common/config/toastConfig';
 import { Fonts } from '@/src/common/resource/fonts';
 import { ToastProvider } from '@/src/customize/toast.context';
+import store from '@/src/data/store/store.config';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -9,6 +10,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
+import { Provider } from 'react-redux';
 
 export {
   ErrorBoundary,
@@ -42,7 +44,11 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <Provider store={store}>
+      <RootLayoutNav></RootLayoutNav>
+    </Provider>
+  );
 }
 
 function RootLayoutNav() {

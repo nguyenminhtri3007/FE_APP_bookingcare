@@ -7,6 +7,7 @@ import * as BookingManagement from "@/src/data/management/booking.management";
 import Toast from 'react-native-toast-message';
 import BookingStyle from './booking.style';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import LoadingDots from '@apolloeagle/loading-dots';
 
 const getVietnameseWeekday = (date: Date): string => {
   const weekdays = [
@@ -85,6 +86,7 @@ const BookingForm = () => {
   const [emailError, setEmailError] = useState(false);
   const [phoneError, setPhoneError] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^\d{10}$/;
@@ -148,12 +150,14 @@ const BookingForm = () => {
       timeString: `${parsedTimeTypeData.valueVi} - ${weekday} - ${selectedDate.toLocaleDateString('vi-VN')}`,
       timeType: timeType
     }
-     try {
-    if (isBooking.current) return;
+     setLoading(true);
+    try {
+    if (isBooking.current) { setLoading(false); return; }
     isBooking.current = true;
 
     const res = await BookingManagement.booking(dataForm);
     isBooking.current = false;
+    setLoading(false);
 
     if (res?.errCode === 0) {
   bookingSuccess.current = true;
@@ -184,6 +188,7 @@ const BookingForm = () => {
 }
   } catch (error: any) {
     isBooking.current = false;
+    setLoading(false);
     Toast.show({
       type: 'error',
       text1: 'Lỗi',
@@ -192,6 +197,23 @@ const BookingForm = () => {
   }
   }
   return (
+    <>
+      {loading && (
+        <View style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.2)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+        }}>
+          <LoadingDots size={16} color="#1976D2" />
+          <Text style={{marginTop: 16, color: '#1976D2', fontWeight: 'bold'}}>Đang xử lý...</Text>
+        </View>
+      )}
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
         <Image
@@ -298,8 +320,10 @@ const BookingForm = () => {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </>
   );
 };
+
 
 const styles = BookingStyle;
 

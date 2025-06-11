@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, View, StyleSheet, TouchableOpacity,  StatusBar,
+import { ActivityIndicator, Image, ScrollView, View, StyleSheet, TouchableOpacity,  StatusBar, 
  } from "react-native";
 import HeaderComponent from "@/src/components/header/header.comp";
 import SpecialtyComponent from "./comp/Specialty/specialty.comp";
@@ -13,7 +13,7 @@ const HomeScreen = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isSearchOverlayVisible, setSearchOverlayVisible] = useState(false);
-    
+
     const images = [
         require("@/assets/images/header-background1.jpg"),
         require("@/assets/images/header-background3.jpg"),
@@ -33,7 +33,7 @@ const HomeScreen = () => {
     const handleDotPress = (index: number) => {
         setCurrentImageIndex(index);
     };
-    
+
     return (
         <View style={styles.container}>
               <StatusBar backgroundColor={CommonColors.primary} barStyle="light-content" />
