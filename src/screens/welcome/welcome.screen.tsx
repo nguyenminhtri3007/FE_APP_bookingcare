@@ -15,13 +15,13 @@ const WelcomeScreen = (props: Props) => {
     return (
         <>
             <ImageBackground
-                source={require('@/assets/images/splash.jpg')}
-              style={{ flex: 1 }}
-                resizeMode="contain"
+                source={require('@/assets/images/splash1.png')}
+              style={{ flex: 1, width: '100%' }}
+              resizeMode="stretch"                
             >
                 <View style={styles.container}>
                     <LinearGradient
-                        colors={["transparent", "rgba(255, 255, 255, 0.9)", "rgba(255, 255, 255, 1)"]}
+                        colors={["transparent", "rgba(255, 255, 255, 0.7)", "rgba(255, 255, 255, 1)"]}
                         style={styles.background}
                     >
                         <View style={styles.wrapper}>
